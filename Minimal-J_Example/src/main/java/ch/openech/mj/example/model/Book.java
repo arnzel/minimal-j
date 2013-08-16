@@ -1,8 +1,6 @@
 package ch.openech.mj.example.model;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.joda.time.LocalDate;
 
@@ -19,7 +17,8 @@ public class Book implements DemoEnabled {
 
 	@Required @Size(ExampleFormats.NAME) 
 	public String title;
-	public final Set<Media> media = new HashSet<>();
+	// public final Set<Media> media = new HashSet<>();
+	public Media media;
 	@Size(ExampleFormats.NAME)
 	public String author;
 	public Boolean available;

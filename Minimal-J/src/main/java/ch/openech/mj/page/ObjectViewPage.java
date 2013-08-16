@@ -9,18 +9,17 @@ public abstract class ObjectViewPage<T> extends Page implements RefreshablePage 
 	private IForm<T> objectPanel;
 	private IComponent alignLayout;
 	
-	public ObjectViewPage(PageContext context) {
-		super(context);
+	public ObjectViewPage() {
 	}
 
 	protected abstract T loadObject();
 
-	protected abstract IForm<T> createForm();
+	protected abstract IForm<T> createForm(IForm.FormChangeListener<T> formListener);
 	
 	@Override
 	public IComponent getComponent() {
 		if (alignLayout == null) {
-			objectPanel = createForm();
+			objectPanel = createForm(null);
 			alignLayout = ClientToolkit.getToolkit().createFormAlignLayout(objectPanel.getComponent());
 			refresh();
 		}
@@ -36,5 +35,4 @@ public abstract class ObjectViewPage<T> extends Page implements RefreshablePage 
 		showObject(loadObject());
 
 	}
-	
 }

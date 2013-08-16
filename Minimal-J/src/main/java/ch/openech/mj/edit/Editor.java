@@ -78,11 +78,10 @@ public abstract class Editor<T> {
 	private EditorFinishedListener editorFinishedListener;
 	private Indicator indicator;
 	private boolean userEdited;
-	private String followLink;
 	
 	// what to implement
 
-	protected abstract IForm<T> createForm();
+	protected abstract IForm<T> createForm(IForm.FormChangeListener<T> formListener);
 
 	/**
 	 * Should load the object to be edited. Note: The object will be copied before
@@ -123,7 +122,6 @@ public abstract class Editor<T> {
 			throw new IllegalStateException();
 		}
 		form = createForm();
-		form.setChangeListener(new EditorChangeListener());
 		
 		original = load();
 		if (original != null) {
@@ -174,7 +172,7 @@ public abstract class Editor<T> {
 	private void fireEditorFinished() {
 		if (editorFinishedListener != null) {
 			try {
-				editorFinishedListener.finished(followLink);
+				editorFinishedListener.finished();
 			} catch (Exception x) {
 				logger.log(Level.SEVERE, x.getLocalizedMessage(), x);
 			}
@@ -192,10 +190,6 @@ public abstract class Editor<T> {
 		}
 	}
 
-	protected final void setFollowLink(String followLink) {
-		this.followLink = followLink;
-	}
-	
 	protected final T getObject() {
 		return editedObject;
 	}

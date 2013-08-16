@@ -1,11 +1,12 @@
 package ch.openech.mj.edit;
 
+
 /**
  * Named <i>Step</i> so not to be confused with the concept of the pages.
  * Loosly based on jface WizardPages.
  * 
  */
-public abstract class WizardStep<T> extends Editor<T> {
+public abstract class WizardStep<T> extends Edit<T> {
 
     /**
 	 * Returns this dialog step's title.

@@ -23,7 +23,7 @@ public abstract class ObjectLinkField<T> extends ObjectField<T> {
 			action.putValue(Action.NAME, display(object));
 			visual.addAction(action);
 		} else {
-			visual.addObject(display(object));
+			visual.add(display(object));
 		}
 	}
 	

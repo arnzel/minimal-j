@@ -4,16 +4,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-import javax.swing.AbstractAction;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import ch.openech.mj.page.PageContext;
-import ch.openech.mj.page.PageContextHelper;
 import ch.openech.mj.resources.ResourceAction;
 import ch.openech.mj.resources.ResourceHelper;
 import ch.openech.mj.resources.Resources;
 import ch.openech.mj.toolkit.ClientToolkit;
+import ch.openech.mj.toolkit.IAction;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.IDialog;
 import ch.openech.mj.toolkit.IDialog.CloseListener;
@@ -21,7 +19,7 @@ import ch.openech.mj.toolkit.ITable;
 import ch.openech.mj.toolkit.TextField;
 import ch.openech.mj.util.GenericUtils;
 
-public abstract class SearchDialogAction<T> extends AbstractAction {
+public abstract class SearchDialogAction<T> implements IAction {
 	private final Object[] keys;
 	private IDialog dialog;
 	private ITable<T> table;
@@ -34,17 +32,16 @@ public abstract class SearchDialogAction<T> extends AbstractAction {
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void action(IComponent source) {
 		try {
-			PageContext context = PageContextHelper.findContext(e.getSource());
-			showPageOn(context);
+			showPageOn(source);
 		} catch (Exception x) {
 			// TODO show dialog
 			x.printStackTrace();
 		}
 	}
 	
-	private void showPageOn(PageContext context) {
+	private void showPageOn(IComponent source) {
 		textFieldSearch = ClientToolkit.getToolkit().createTextField(new SearchChangeListener(), 100);
 		
 		@SuppressWarnings("unchecked")
@@ -53,7 +50,7 @@ public abstract class SearchDialogAction<T> extends AbstractAction {
 				
 		IComponent layout = ClientToolkit.getToolkit().createSearchLayout(textFieldSearch, new SearchAction(), table, new OkAction());
 		
-		dialog = ClientToolkit.getToolkit().openDialog(context, layout, "Suche");
+		dialog = ClientToolkit.getToolkit().openDialog(source, layout, "Suche");
 		
 		dialog.setCloseListener(new CloseListener() {
 			@Override

@@ -20,7 +20,7 @@ public class CustomerField extends ObjectFlowField<Customer> {
 	}
 	
 	@Override
-	public IForm<Customer> createFormPanel() {
+	public IForm<Customer> createFormPanel(IForm.FormChangeListener<Customer> formListener) {
 		// not used
 		return null;
 	}

@@ -6,7 +6,6 @@ import java.util.List;
 
 import ch.openech.mj.example.ExamplePersistence;
 import ch.openech.mj.example.model.Book;
-import ch.openech.mj.page.PageContext;
 import ch.openech.mj.page.RefreshablePage;
 import ch.openech.mj.page.TablePage;
 
@@ -22,8 +21,8 @@ public class BookTablePage extends TablePage<Book> implements RefreshablePage {
 		BOOK.available, //
 	};
 
-	public BookTablePage(PageContext context, String text) {
-		super(context, FIELDS, text);
+	public BookTablePage(String text) {
+		super(FIELDS, text);
 	}
 	
 	@Override

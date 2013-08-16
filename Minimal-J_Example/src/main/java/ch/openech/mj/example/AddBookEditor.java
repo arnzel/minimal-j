@@ -9,8 +9,8 @@ import ch.openech.mj.page.Page;
 public class AddBookEditor extends Editor<Book> {
 
 	@Override
-	public IForm<Book> createForm() {
-		return new BookForm(true);
+	public IForm<Book> createForm(IForm.FormChangeListener<Book> formListener) {
+		return new BookForm(formListener);
 	}
 	
 	@Override

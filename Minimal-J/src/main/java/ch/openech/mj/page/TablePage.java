@@ -19,8 +19,7 @@ public abstract class TablePage<T> extends Page implements RefreshablePage {
 	private String text;
 	private ITable<T> table;
 
-	public TablePage(PageContext context, Object[] FIELDS, String text) {
-		super(context);
+	public TablePage(Object[] FIELDS, String text) {
 		this.text = text;
 		table = ClientToolkit.getToolkit().createTable((Class<T>)Object.class, FIELDS);
 		table.setClickListener(new TableClickListener());

@@ -9,8 +9,8 @@ import ch.openech.mj.page.Page;
 public class AddCustomerEditor extends Editor<Customer> {
 
 	@Override
-	public IForm<Customer> createForm() {
-		return new CustomerForm(true);
+	public IForm<Customer> createForm(IForm.FormChangeListener<Customer> formListener) {
+		return new CustomerForm(formListener);
 	}
 	
 	@Override

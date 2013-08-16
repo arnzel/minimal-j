@@ -4,7 +4,6 @@ import ch.openech.mj.edit.form.IForm;
 import ch.openech.mj.example.CustomerForm;
 import ch.openech.mj.example.ExamplePersistence;
 import ch.openech.mj.example.model.Customer;
-import ch.openech.mj.page.ActionGroup;
 import ch.openech.mj.page.ObjectViewPage;
 import ch.openech.mj.page.PageContext;
 
@@ -27,13 +26,8 @@ public class CustomerViewPage extends ObjectViewPage<Customer> {
 	}
 
 	@Override
-	protected IForm<Customer> createForm() {
-		return new CustomerForm(false);
-	}
-	
-	@Override
-	public void fillActionGroup(ActionGroup actionGroup) {
-		// actionGroup.add(action)
+	protected IForm<Customer> createForm(IForm.FormChangeListener<Customer> formListener) {
+		return new CustomerForm(formListener);
 	}
 	
 }

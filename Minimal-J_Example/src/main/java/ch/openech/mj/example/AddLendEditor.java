@@ -8,8 +8,8 @@ import ch.openech.mj.example.model.Lend;
 public class AddLendEditor extends Editor<Lend> {
 
 	@Override
-	public IForm<Lend> createForm() {
-		return new LendForm(true);
+	public IForm<Lend> createForm(IForm.FormChangeListener<Lend> formListener) {
+		return new LendForm(formListener);
 	}
 	
 	@Override

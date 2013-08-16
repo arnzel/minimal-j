@@ -50,7 +50,9 @@ public abstract class ClientToolkit {
 	public abstract CheckBox createCheckBox(ChangeListener changeListener, String text);
 
 	public abstract <T> ITable<T> createTable(Class<T> clazz, Object[] fields);
-
+	
+	public abstract ILink createLink(String text, String address);
+	
 	// Layouts
 	
 	public abstract Caption decorateWithCaption(IComponent component, String caption);
@@ -82,10 +84,6 @@ public abstract class ClientToolkit {
 	// Focus
 	
 	public abstract void focusFirstComponent(IComponent component);
-	
-	//
-
-	public abstract Object getParent(Object component);
 	
 	// Up / Dowload
 	

@@ -1,9 +1,13 @@
 package ch.openech.mj.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -22,6 +26,7 @@ import ch.openech.mj.resources.ResourceAction;
 import ch.openech.mj.swing.component.EditablePanel;
 import ch.openech.mj.swing.component.History;
 import ch.openech.mj.swing.component.History.HistoryListener;
+import ch.openech.mj.swing.toolkit.SwingClientToolkit.SwingActionLink;
 import ch.openech.mj.swing.toolkit.SwingSwitchLayout;
 import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IComponent;
@@ -38,6 +43,7 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 	
 	private final History<String> history;
 	private final SwingPageContextHistoryListener historyListener;
+	private final SwingLinkListener linkListener;
 
 	private Page page;
 	private List<String> pageLinks;
@@ -50,6 +56,8 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 		historyListener = new SwingPageContextHistoryListener();
 		history = new History<String>(historyListener);
 
+		linkListener = new SwingLinkListener();
+		
 		previousAction = new PreviousPageAction();
 		nextAction = new NextPageAction();
 		refreshAction = new RefreshAction();
@@ -179,10 +187,32 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 
 		private void show(Page page) {
 			switchLayout.show((IComponent) page.getComponent());
+			findLinks((Component) page.getComponent());
 			ClientToolkit.getToolkit().focusFirstComponent(page.getComponent());
 		}
 	}
 
+	private void findLinks(Component component) {
+		if (component instanceof SwingActionLink) {
+			((SwingActionLink) component).setMouseListener(linkListener);
+		}
+		if (component instanceof Container) {
+			Container container = (Container) component;
+			for (Component c : container.getComponents()) {
+				findLinks(c);
+			}
+		}
+	}
+	
+	private class SwingLinkListener extends MouseAdapter {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			SwingActionLink link = (SwingActionLink) e.getSource();
+			String pageLink = link.getAddress();
+			show(pageLink);
+		}
+	}
+	
 	public void add(String pageLink) {
 		history.add(pageLink);
 	}

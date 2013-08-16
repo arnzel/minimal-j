@@ -16,14 +16,11 @@ import ch.openech.mj.util.StringUtils;
 public abstract class Page {
 	private static final Logger logger = Logger.getLogger(Page.class.getName());
 	
-	private final PageContext context;
-
 	private String title;
 	private Icon titleIcon;
 	private String titleToolTip;
 	
-	public Page(PageContext context) {
-		this.context = context;
+	public Page() {
 		initProperties(Resources.getResourceBundle(), getResourceBaseName());
 	}
 	
@@ -33,10 +30,6 @@ public abstract class Page {
 	 */
 	public boolean isExclusive() {
 		return false;
-	}
-	
-	protected PageContext getPageContext() {
-		return context;
 	}
 	
 	private void initProperties(ResourceBundle resourceBundle, String baseName) {
@@ -66,7 +59,7 @@ public abstract class Page {
 
 	public abstract IComponent getComponent();
 
-	public void fillActionGroup(ActionGroup actionGroup) {
+	public final void fillActionGroup(ActionGroup actionGroup) {
 		// should be done in subclass
 	}
 	
@@ -100,11 +93,6 @@ public abstract class Page {
 		firePageChanged();
 	}
 	
-	protected void show(Class<? extends Page> pageClass, String... args) {
-		String pageLink = link(pageClass, args);
-		context.show(pageLink);
-	}
-	
 	private void firePageChanged() {
 		if (context instanceof PageListener) {
 			((PageListener) context).onPageTitleChanged(this);
@@ -115,9 +103,9 @@ public abstract class Page {
 		public void onPageTitleChanged(Page page);
 	}
 	
-	public static Page createPage(PageContext context, String pageLink) {
+	public static Page createPage(String pageLink) {
 		if (StringUtils.isEmpty(pageLink)) {
-			return MjApplication.getApplication().createDefaultPage(context);
+			return MjApplication.getApplication().createDefaultPage();
 		}
 		try {
 			int pos = pageLink.indexOf('/');
@@ -134,29 +122,24 @@ public abstract class Page {
 			if (pos > 0) {
 				String[] fragmentParts = pageLink.substring(pos+1).split("/");
 				if (fragmentParts.length > 1) {
-					Class<?>[] argumentClasses = new Class[2];
-					argumentClasses[0] = PageContext.class;
-					argumentClasses[1] = new String[0].getClass();
-					return (Page) clazz.getConstructor(argumentClasses).newInstance(new Object[]{context, fragmentParts});
+					Class<?>[] argumentClasses = new Class[1];
+					argumentClasses[0] = new String[0].getClass();
+					return (Page) clazz.getConstructor(argumentClasses).newInstance(new Object[]{fragmentParts});
 				} else {
-					Class<?>[] argumentClasses = new Class[2];
-					argumentClasses[0] = PageContext.class;
-					argumentClasses[1] = String.class;
-					return (Page) clazz.getConstructor(argumentClasses).newInstance(context, fragmentParts[0]);
+					Class<?>[] argumentClasses = new Class[1];
+					argumentClasses[0] = String.class;
+					return (Page) clazz.getConstructor(argumentClasses).newInstance(fragmentParts[0]);
 				}
 			} else {
-				Class<?>[] argumentClasses = new Class[1];
-				argumentClasses[0] = PageContext.class;
-				return (Page) clazz.getConstructor(argumentClasses).newInstance(context);
+				Class<?>[] argumentClasses = new Class[0];
+				return (Page) clazz.getConstructor().newInstance();
 			}
 		} catch (Exception x) {
 			logger.log(Level.SEVERE, "UriFragment Auflösung fehlgeschlagen: " + pageLink, x);
 			// TODO It would be nice to have here an error page instead of an empty page
-			return new EmptyPage(context);
+			return new EmptyPage();
 		}
 	}
-
-
 
 	public static String link(Class<? extends Page> pageClass, String... args) {
 		StringBuilder s = new StringBuilder();
@@ -166,20 +149,5 @@ public abstract class Page {
 		}
 		return s.toString();
 	}
-	
-	public static String link(String... args) {
-		if (args.length == 0) {
-			return "";
-		} else if (args.length == 1) {
-			return args[0];
-		} else {
-			StringBuilder s = new StringBuilder();
-			s.append(args[0]);
-			for (int i = 1; i<args.length; i++) {
-				s.append("/"); s.append(args[i]);
-			}
-			return s.toString();
-		}
-	}
-	
+		
 }

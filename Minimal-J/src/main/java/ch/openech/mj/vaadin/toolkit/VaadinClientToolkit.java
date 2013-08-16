@@ -20,6 +20,7 @@ import ch.openech.mj.toolkit.GridFormLayout;
 import ch.openech.mj.toolkit.HorizontalLayout;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.IDialog;
+import ch.openech.mj.toolkit.ILink;
 import ch.openech.mj.toolkit.ITable;
 import ch.openech.mj.toolkit.ImportHandler;
 import ch.openech.mj.toolkit.ProgressListener;
@@ -28,11 +29,13 @@ import ch.openech.mj.toolkit.TextField;
 
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.Notification;
+import com.vaadin.ui.themes.BaseTheme;
 
 public class VaadinClientToolkit extends ClientToolkit {
 
@@ -215,15 +218,6 @@ public class VaadinClientToolkit extends ClientToolkit {
 	}
 	
 	@Override
-	public Object getParent(Object component) {
-		if (component instanceof Component) {
-			return ((Component) component).getParent();
-		} else {
-			return null;
-		}
-	}
-
-	@Override
 	public IComponent exportLabel(ExportHandler exportHandler, String label) {
 		return new VaadinExportLabel(exportHandler, label);
 //		Component parentComponent = (Component) parent;
@@ -260,6 +254,39 @@ public class VaadinClientToolkit extends ClientToolkit {
 		VaadinImportDialog importDialog = new VaadinImportDialog(window, "Import");
 		PipedInputStream inputStream = importDialog.getInputStream();
 		return inputStream;
+	}
+
+	@Override
+	public ILink createLink(String text, String address) {
+		final VaadinActionLink button = new VaadinActionLink(text, address);
+		return button;
+	}
+	
+	public static class VaadinActionLink extends Button implements ILink {
+		private final String address;
+		private ClickListener listener;
+		
+		public VaadinActionLink(String text, String address) {
+			super(text);
+			this.address = address;
+			setStyleName(BaseTheme.BUTTON_LINK);
+
+			addListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					listener.buttonClick(event);
+				}
+			});
+		}
+
+		@Override
+		public String getAddress() {
+			return address;
+		}
+		
+		public void setClickListener(ClickListener listener) {
+			this.listener = listener;
+		}
 	}
 	
 }

@@ -85,7 +85,7 @@ public abstract class Wizard<T> extends Editor<T> {
 	}
 	
 	@Override
-	protected final IForm<T> createForm() {
+	protected final IForm<T> createForm(IForm.FormChangeListener<T> formListener) {
 		switchForm = new SwitchForm<T>();
 		return switchForm;
 	}
@@ -129,12 +129,7 @@ public abstract class Wizard<T> extends Editor<T> {
 	
 	private class WizardStepFinishedListener implements EditorFinishedListener {
 		@Override
-		public void progress(int value, int maximum) {
-			// ignored
-		}
-
-		@Override
-		public void finished(String followLink) {
+		public void finished() {
 			WizardStep<?> nextStep = currentStep.getNextStep();
 			if (nextStep != null) {
 				currentStepIndex++;

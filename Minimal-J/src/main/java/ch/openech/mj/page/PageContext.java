@@ -38,7 +38,26 @@ public interface PageContext extends IComponent {
 	 * @return the new PageContext
 	 */
 	PageContext addTab();
+	
+	/**
+	 * Show a page in a dialog
+	 * 
+	 * @param pageLink
+	 */
+	void showDialog(String pageLink);
 
+	/**
+	 * Block the context and show progress
+	 * 
+	 */
+	void showProgress(String text, int value, int maximum);
+	
+	/**
+	 * 
+	 * @param actionGroup
+	 */
+	void setContextMenu(ActionGroup actionGroup);
+	
 	/**
 	 * 
 	 * @return ApplicationContext

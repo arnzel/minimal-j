@@ -52,7 +52,7 @@
 			<artifactId>gwt-user</artifactId>
 			<version>2.3.0</version>
 			<!-- remove for local tomcat -->
-			<scope>provided</scope>
+			<!--  <scope>provided</scope>  -->
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
@@ -70,6 +70,17 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.0</version>
 		</dependency>		
+		<dependency>
+			<groupId>com.googlecode.lanterna</groupId>
+			<artifactId>lanterna</artifactId>
+			<version>2.1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.lanterna</groupId>
+			<artifactId>lanterna</artifactId>
+			<version>2.1.6-SNAPSHOT</version>
+			<classifier>sources</classifier>
+		</dependency>
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

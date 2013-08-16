@@ -1,13 +1,13 @@
 package ch.openech.mj.edit.fields;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-
-import ch.openech.mj.edit.Editor;
-import ch.openech.mj.edit.EditorDialogAction;
+import ch.openech.mj.edit.Edit;
+import ch.openech.mj.edit.EditDialogAction;
 import ch.openech.mj.model.PropertyInterface;
+import ch.openech.mj.resources.Resources;
+import ch.openech.mj.toolkit.ClientToolkit;
+import ch.openech.mj.toolkit.IAction;
+import ch.openech.mj.toolkit.IComponent;
+import ch.openech.mj.toolkit.TextField;
 
 /**
  * The state of an ObjectField is saved in the object variable.<p>
@@ -32,7 +32,7 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 		
 	}
 
-	public abstract class ObjectFieldPartEditor<P> extends Editor<P> {
+	public abstract class ObjectFieldPartEditor<P> extends Edit<P> {
 
 		@Override
 		public P load() {
@@ -53,15 +53,19 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 	}
 	
 	// why public
-	public class RemoveObjectAction extends AbstractAction {
+	public class RemoveObjectAction implements IAction {
 		@Override
-		public void actionPerformed(ActionEvent e) {
+		public void action(IComponent source) {
 			ObjectFlowField.this.setObject(null);
 		}
 	}
 	
 	protected void addObject(Object object) {
-		visual.addObject(object);
+		if (object != null) {
+			TextField textField = ClientToolkit.getToolkit().createReadOnlyTextField();
+			textField.setText(object.toString());
+			visual.add(textField);
+		}
 	}
 
 	protected void addHtml(String html) {
@@ -71,17 +75,25 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 	protected void addGap() {
 		visual.addGap();
 	}
-	
-	protected void addAction(Action action) {
-		visual.addAction(action);
+
+	public void addAction(IAction action) {
+		addAction(Resources.getString(action.getClass().getSimpleName() + ".text"), action);
 	}
-	
-	protected void addAction(Editor<?> editor) {
-		visual.addAction(new EditorDialogAction(editor));
+
+	public void addLink(String text, String link) {
+		visual.add(ClientToolkit.getToolkit().createLink(text, link));
 	}
-	
-	protected void addAction(Editor<?> editor, String actionName) {
-		visual.addAction(new EditorDialogAction(editor, actionName));
+
+	@Deprecated
+	public void addAction(Edit edit) {
+		addAction(edit, edit.getClass().getSimpleName());
+	}
+
+	@Deprecated
+	public void addAction(Edit edit, String text) {
+		text = Resources.getString(text + ".text");
+		EditDialogAction editDialogAction = new EditDialogAction(edit);
+		visual.add(ClientToolkit.getToolkit().createLink(text, editDialogAction));
 	}
 	
 }

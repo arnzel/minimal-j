@@ -3,10 +3,14 @@ package ch.openech.mj.swing.toolkit;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Window;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +24,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -39,6 +44,7 @@ import ch.openech.mj.toolkit.GridFormLayout;
 import ch.openech.mj.toolkit.HorizontalLayout;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.IDialog;
+import ch.openech.mj.toolkit.ILink;
 import ch.openech.mj.toolkit.ITable;
 import ch.openech.mj.toolkit.ImportHandler;
 import ch.openech.mj.toolkit.ProgressListener;
@@ -228,18 +234,6 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public Object getParent(Object c) {
-		if (c instanceof JPopupMenu) {
-			JPopupMenu popupMenu = (JPopupMenu) c;
-			return popupMenu.getInvoker();
-		} else if (c instanceof Component) {
-			return ((Component) c).getParent();
-		} else {
-			throw new IllegalArgumentException();
-		}
-	}
-
-	@Override
 	public IComponent importField(ImportHandler importHandler, String buttonText) {
 		return null;
 	}
@@ -296,6 +290,38 @@ public class SwingClientToolkit extends ClientToolkit {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public ILink createLink(String text, String address) {
+        return new SwingActionLink(text, address);
+	}
+	
+	public static class SwingActionLink extends JLabel implements ILink {
+		private final String address;
+		private MouseListener mouseListener;
+		
+		public SwingActionLink(String text, String address) {
+			super(text);
+			this.address = address;
+			setForeground(Color.BLUE);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					mouseListener.mouseClicked(e);
+				}
+			});
+		}
+
+		public String getAddress() {
+			return address;
+		}
+
+		public void setMouseListener(MouseListener mouseListener) {
+			this.mouseListener = mouseListener;
+		}
 	}
 
 	// @Override

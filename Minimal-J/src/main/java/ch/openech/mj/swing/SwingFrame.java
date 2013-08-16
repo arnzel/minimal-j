@@ -76,7 +76,7 @@ public class SwingFrame extends JFrame implements IComponent {
 
 	public void addDefaultTab() {
 		SwingTab tab = addTab();
-		tab.show(Page.link());
+		tab.show(""); // show empty tab
 	}
 	
 	public SwingTab addTab() {

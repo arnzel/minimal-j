@@ -52,13 +52,13 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 		return visual;
 	}
 	
-	protected abstract IForm<T> createFormPanel();
+	protected abstract IForm<T> createFormPanel(IForm.FormChangeListener<T> formListener);
 
 	public class ObjectFieldEditor extends Editor<T> {
 
 		@Override
-		public IForm<T> createForm() {
-			return ObjectField.this.createFormPanel();
+		public IForm<T> createForm(IForm.FormChangeListener<T> formListener) {
+			return ObjectField.this.createFormPanel(formListener);
 		}
 
 		@Override
@@ -96,7 +96,7 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 	}
 
 	protected void display() {
-		visual.clear();
+		visual.removeAll();
 		if (enabled) {
 			if (object != null) {
 				show(object);

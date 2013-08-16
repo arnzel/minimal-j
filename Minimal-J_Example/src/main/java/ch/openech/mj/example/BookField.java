@@ -20,7 +20,7 @@ public class BookField extends ObjectFlowField<Book> {
 	}
 	
 	@Override
-	public IForm<Book> createFormPanel() {
+	public IForm<Book> createFormPanel(IForm.FormChangeListener<Book> formListener) {
 		// not used
 		return null;
 	}

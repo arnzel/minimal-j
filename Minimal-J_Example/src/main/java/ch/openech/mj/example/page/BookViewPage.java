@@ -26,8 +26,8 @@ public class BookViewPage extends ObjectViewPage<Book> {
 	}
 
 	@Override
-	protected IForm<Book> createForm() {
-		return new BookForm(false);
+	protected IForm<Book> createForm(IForm.FormChangeListener<Book> formListener) {
+		return new BookForm(formListener);
 	}
 	
 }
