@@ -14,12 +14,13 @@ import ch.openech.mj.toolkit.ITable;
  *
  * @param <T> Class of objects in this overview
  */
-public abstract class TablePage<T> extends Page implements RefreshablePage {
+public abstract class TablePage<T> extends AbstractPage implements RefreshablePage {
 
 	private String text;
 	private ITable<T> table;
 
-	public TablePage(Object[] FIELDS, String text) {
+	public TablePage(PageContext context, Object[] FIELDS, String text) {
+		super(context);
 		this.text = text;
 		table = ClientToolkit.getToolkit().createTable((Class<T>)Object.class, FIELDS);
 		table.setClickListener(new TableClickListener());
@@ -39,7 +40,6 @@ public abstract class TablePage<T> extends Page implements RefreshablePage {
 		return table;
 	}
 	
-
 	private class TableClickListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {

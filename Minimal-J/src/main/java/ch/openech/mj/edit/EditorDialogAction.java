@@ -1,18 +1,11 @@
 package ch.openech.mj.edit;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-
+import ch.openech.mj.edit.Editor.EditorListener;
 import ch.openech.mj.edit.form.IForm;
-import ch.openech.mj.page.PageContext;
-import ch.openech.mj.resources.ResourceHelper;
-import ch.openech.mj.resources.Resources;
 import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.IDialog;
-import ch.openech.mj.toolkit.IDialog.CloseListener;
-import ch.openech.mj.toolkit.ProgressListener;
+import ch.openech.mj.toolkit.ResourceAction;
 
 /**
  * An Action that shows a given Editor in a dialog if executed.
@@ -20,36 +13,28 @@ import ch.openech.mj.toolkit.ProgressListener;
  * If the Editor should cover all of the screen use EditorPageAction.
  *
  */
-public class EditorDialogAction extends AbstractAction {
+public class EditorDialogAction extends ResourceAction {
 	private final Editor<?> editor;
-	private final PageContext context;
-
-	public EditorDialogAction(PageContext context, Editor<?> editor) {
-		this.editor = editor;
-		this.context = context;
-		ResourceHelper.initProperties(this, Resources.getResourceBundle(), editor.getClass().getSimpleName());
+	
+	public EditorDialogAction(Editor<?> editor) {
+		this(editor, editor.getClass().getSimpleName());
 	}
-
-	public void setObject(T object) {
-		this.object = object;
+	
+	public EditorDialogAction(Editor<?> editor, String actionName) {
+		super(actionName);
+		this.editor = editor;
 	}
 	
 	@Override
-	public void actionPerformed(ActionEvent event) {
-		try {
-			showDialogOn(context, editor, object);
-		} catch (Exception x) {
-			// TODO show dialog
-			x.printStackTrace();
-		}
+	public void action(IComponent context) {
+		showDialogOn(context);
 	}
 
-	public static <T> void showDialogOn(IComponent parent, final Editor<T> editor, T object) {
+	public void showDialogOn(IComponent context) {
 		IForm<?> form = editor.startEditor();
-		IComponent layout = ClientToolkit.getToolkit().createEditorLayout(form.getComponent(), editor.getActions());
-		final IDialog dialog = ClientToolkit.getToolkit().openDialog(parent, layout, editor.getTitle());
+		final IDialog dialog = ClientToolkit.getToolkit().createDialog(context, editor.getTitle(), form.getComponent(), editor.getActions());
 		
-		dialog.setCloseListener(new CloseListener() {
+		dialog.setCloseListener(new IDialog.CloseListener() {
 			@Override
 			public boolean close() {
 				editor.checkedClose();
@@ -57,11 +42,9 @@ public class EditorDialogAction extends AbstractAction {
 			}
 		});
 		
-		editor.setEditorFinishedListener(new Edit.EditorFinishedListener() {
-			private ProgressListener progressListener;
-			
+		editor.setEditorListener(new EditorListener() {
 			@Override
-			public void finished() {
+			public void saved(Object savedObject) {
 				dialog.closeDialog();
 			}
 
@@ -71,7 +54,7 @@ public class EditorDialogAction extends AbstractAction {
 			}
 		});
 		dialog.openDialog();
-		ClientToolkit.getToolkit().focusFirstComponent(form.getComponent());
+//		ClientToolkit.getToolkit().focusFirstComponent(form.getComponent());
 	}
 	
 }

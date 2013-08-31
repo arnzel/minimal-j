@@ -2,11 +2,13 @@ package ch.openech.mj.swing.component;
 
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.joda.time.LocalDate;
@@ -16,18 +18,19 @@ import org.joda.time.ReadablePartial;
 
 import ch.openech.mj.model.Keys;
 import ch.openech.mj.model.PropertyInterface;
+import ch.openech.mj.resources.Resources;
 import ch.openech.mj.util.JodaFormatter;
 
 public class PropertyTable<T> extends JTable {
 	private static final Logger logger = Logger.getLogger(PropertyTable.class.getName());
 
 	private final List<PropertyInterface> properties;
-	private final PropertyTableModel<T> tableModel;
+	private final PropertyTableModel tableModel;
 
 	public PropertyTable(Class<T> clazz, Object[] keys) {
 		this.properties = convert(keys);
 		
-		tableModel = new PropertyTableModel<T>(properties);
+		tableModel = new PropertyTableModel();
 		setModel(tableModel);
 		
 //		setDefaultRenderer(BooleanFormat.class, new BooleanTableCellRenderer());
@@ -59,6 +62,53 @@ public class PropertyTable<T> extends JTable {
 		tableModel.setObjects(list);
 	}
 
+	public class PropertyTableModel extends AbstractTableModel {
+
+		private List<T> list = Collections.emptyList();
+
+		public void setObjects(List<T> bookList) {
+			this.list = bookList;
+			fireTableDataChanged();
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return false;
+		}
+
+		@Override
+		public String getColumnName(int column) {
+			PropertyInterface property = properties.get(column)
+;			return Resources.getObjectFieldName(Resources.getResourceBundle(), property);
+		}
+
+		@Override
+		public Object getValueAt(int row, int column) {
+			T object = list.get(row);
+			PropertyInterface property = properties.get(column);
+			return property.getValue(object);
+		}
+
+		@Override
+		public int getRowCount() {
+			return list.size();
+		}
+
+		@Override
+		public int getColumnCount() {
+			return properties.size();
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return properties.get(columnIndex).getFieldClazz();
+		}
+
+		public T getRow(int row) {
+			return list.get(row);
+		}
+	}
+	
 	private class BooleanTableCellRenderer extends DefaultTableCellRenderer {
 
 		@Override

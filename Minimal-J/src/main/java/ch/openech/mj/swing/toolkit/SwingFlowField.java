@@ -24,7 +24,7 @@ public class SwingFlowField extends JPanel implements FlowField {
 	}
 
 	@Override
-	public void removeAll() {
+	public void clear() {
 		removeAll();
 		repaint();
 		revalidate();
@@ -40,6 +40,8 @@ public class SwingFlowField extends JPanel implements FlowField {
 	@Override
 	public void add(IComponent component) {
 		super.add((Component) component);
+		repaint();
+		revalidate();
 	}
 	
 }

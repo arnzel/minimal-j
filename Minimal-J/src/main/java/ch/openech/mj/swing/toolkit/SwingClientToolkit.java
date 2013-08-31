@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.event.MouseAdapter;
@@ -17,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.FocusManager;
@@ -28,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 
@@ -42,11 +45,12 @@ import ch.openech.mj.toolkit.ExportHandler;
 import ch.openech.mj.toolkit.FlowField;
 import ch.openech.mj.toolkit.GridFormLayout;
 import ch.openech.mj.toolkit.HorizontalLayout;
+import ch.openech.mj.toolkit.IAction;
+import ch.openech.mj.toolkit.IAction.ActionChangeListener;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.IDialog;
 import ch.openech.mj.toolkit.ILink;
 import ch.openech.mj.toolkit.ITable;
-import ch.openech.mj.toolkit.ImportHandler;
 import ch.openech.mj.toolkit.ProgressListener;
 import ch.openech.mj.toolkit.SwitchLayout;
 import ch.openech.mj.toolkit.TextField;
@@ -57,7 +61,31 @@ public class SwingClientToolkit extends ClientToolkit {
 	public IComponent createLabel(String string) {
 		return new SwingLabel(string);
 	}
+	
+	@Override
+	public IComponent createLabel(IAction action) {
+		return new SwingActionLabel(action);
+	}
 
+	private static class SwingActionLabel extends JLabel implements IComponent {
+
+		public SwingActionLabel(final IAction action) {
+//			setIcon((Icon) action.getValue(Action.SMALL_ICON));
+			setText(action.getName());
+//			label.setToolTipText(Resources.getResourceBundle().getString(runnable.getClass().getSimpleName() + ".description"));
+			
+			setForeground(Color.BLUE);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					action.action(SwingActionLabel.this);
+				}
+			});
+		}
+		
+	}
+	
 	@Override
 	public IComponent createTitle(String string) {
 		return new SwingTitle(string);
@@ -123,8 +151,7 @@ public class SwingClientToolkit extends ClientToolkit {
 		return new SwingScrollPane(new ScrollablePanel(panel));
 	}
 
-	@Override
-	public void focusFirstComponent(IComponent object) {
+	public static void focusFirstComponent(IComponent object) {
 		if (object instanceof JComponent) {
 			JComponent jComponent = (JComponent) object;
 			if (jComponent.isShowing()) {
@@ -135,7 +162,7 @@ public class SwingClientToolkit extends ClientToolkit {
 		}
 	}
 
-	private void focusFirstComponentNow(JComponent component) {
+	private static void focusFirstComponentNow(JComponent component) {
 		FocusTraversalPolicy focusPolicy = component.getFocusTraversalPolicy();
 		if (component instanceof JTextComponent || component instanceof JComboBox || component instanceof JCheckBox) {
 			component.requestFocus();
@@ -146,7 +173,7 @@ public class SwingClientToolkit extends ClientToolkit {
 		}
 	}
 
-	private void focusFirstComponentLater(final JComponent component, final IComponent object) {
+	private static void focusFirstComponentLater(final JComponent component, final IComponent object) {
 		component.addHierarchyListener(new HierarchyListener() {
 			@Override
 			public void hierarchyChanged(HierarchyEvent e) {
@@ -181,8 +208,7 @@ public class SwingClientToolkit extends ClientToolkit {
 		return new SwingTable<T>(clazz, fields);
 	}
 
-	@Override
-	public ProgressListener showProgress(Object parent, String text) {
+	public static ProgressListener showProgress(Object parent, String text) {
 		EditablePanel editablePanel = EditablePanel.getEditablePanel((Component)parent);
 		if (editablePanel != null) {
 			SwingProgressInternalFrame frame = new SwingProgressInternalFrame(text);
@@ -197,11 +223,11 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public IDialog openDialog(IComponent parent, IComponent content, String title) {
-		Window window = findWindow((Component)parent);
-		Component contentComponent = (Component)content;
+	public IDialog createDialog(IComponent parent, String title, IComponent content, IAction... actions) {
+		Window window = findWindow((Component) parent);
 		// TODO check for OS or move this to UI
-		((JComponent) contentComponent).setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		JComponent contentComponent = new SwingEditorLayout(content, actions);
+		contentComponent.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
 		EditablePanel editablePanel = EditablePanel.getEditablePanel((Component) parent);
 
@@ -212,7 +238,7 @@ public class SwingClientToolkit extends ClientToolkit {
 		}
 	}
 
-	private Window findWindow(Component parentComponent) {
+	public static Window findWindow(Component parentComponent) {
 		while (parentComponent != null && !(parentComponent instanceof Window)) {
 			if (parentComponent instanceof JPopupMenu) {
 				parentComponent = ((JPopupMenu) parentComponent).getInvoker();
@@ -223,33 +249,16 @@ public class SwingClientToolkit extends ClientToolkit {
 		return (Window) parentComponent;
 	}
 
-	@Override
-	public IComponent createEditorLayout(IComponent content, Action[] actions) {
-		return new SwingEditorLayout(content, actions);
-	}
-
-	@Override
-	public IComponent createSearchLayout(TextField text, Action searchAction, IComponent content, Action... actions) {
+	public static Component createSearchLayout(TextField text, Action searchAction, IComponent content, Action... actions) {
 		return new SwingSearchLayout(text, searchAction, content, actions);
 	}
 
 	@Override
-	public IComponent importField(ImportHandler importHandler, String buttonText) {
-		return null;
-	}
-
-	@Override
-	public IComponent exportLabel(ExportHandler exportHandler, String label) {
-		return new SwingExportLabel(exportHandler, label);
-	}
-	
-	@Override
-	public void export(Object parent, String buttonText, ExportHandler exportHandler) {
-		Window window = findWindow((Component) parent);
+	public void export(IComponent parent, String buttonText, ExportHandler exportHandler) {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setMultiSelectionEnabled(false);
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (JFileChooser.APPROVE_OPTION == chooser.showDialog(window, buttonText)) {
+		if (JFileChooser.APPROVE_OPTION == chooser.showDialog((Component) parent, buttonText)) {
 			File outputFile = chooser.getSelectedFile();
 			try {
 				exportHandler.export(new FileOutputStream(outputFile));
@@ -260,11 +269,11 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public InputStream imprt(Object parent, String buttonText) {
+	public InputStream imprt(IComponent parent, String buttonText) {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setMultiSelectionEnabled(false);
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (JFileChooser.APPROVE_OPTION == chooser.showDialog(null, buttonText)) {
+		if (JFileChooser.APPROVE_OPTION == chooser.showDialog((Component) parent, buttonText)) {
 			File inputFile = chooser.getSelectedFile();
 			try {
 				return new FileInputStream(inputFile);
@@ -278,7 +287,7 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	public static boolean verticallyGrowing(Component component) {
-		if (component instanceof SwingFlowField) {
+		if (component instanceof SwingFlowField || component instanceof JTable) {
 			return true;
 		}
 		if (component instanceof Container) {
@@ -294,14 +303,14 @@ public class SwingClientToolkit extends ClientToolkit {
 
 	@Override
 	public ILink createLink(String text, String address) {
-        return new SwingActionLink(text, address);
+        return new SwingLink(text, address);
 	}
 	
-	public static class SwingActionLink extends JLabel implements ILink {
+	public static class SwingLink extends JLabel implements ILink {
 		private final String address;
 		private MouseListener mouseListener;
 		
-		public SwingActionLink(String text, String address) {
+		public SwingLink(String text, String address) {
 			super(text);
 			this.address = address;
 			setForeground(Color.BLUE);
@@ -324,6 +333,40 @@ public class SwingClientToolkit extends ClientToolkit {
 		}
 	}
 
+	public static Action[] adaptActions(IAction[] actions, IComponent context) {
+		Action[] swingActions = new Action[actions.length];
+		for (int i = 0; i<actions.length; i++) {
+			swingActions[i] = adaptAction(actions[i], context);
+		}
+		return swingActions;
+	}
+
+	public static Action adaptAction(final IAction action, final IComponent context) {
+		final Action swingAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				action.action(context);
+			}
+		};
+		action.setChangeListener(new ActionChangeListener() {
+			{
+				update();
+			}
+			
+			@Override
+			public void change() {
+				update();
+			}
+
+			protected void update() {
+				swingAction.putValue(Action.NAME, action.getName());
+				swingAction.putValue(Action.LONG_DESCRIPTION, action.getDescription());
+				swingAction.setEnabled(action.isEnabled());
+			}
+		});
+		return swingAction;
+	}
+	
 	// @Override
 	// public InputStream importField(Object parent, String buttonText) {
 	// JFileChooser chooser = new JFileChooser();

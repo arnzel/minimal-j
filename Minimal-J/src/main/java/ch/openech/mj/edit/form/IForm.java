@@ -11,6 +11,16 @@ public interface IForm<T> {
 	
 	public void setObject(T value);
 
+	/**
+	 * Set the ChangeListener<br>
+	 * note: The default implementation form needs that the listener
+	 * is set before the first call of setObject. It cannot be changed
+	 * afterwards.
+	 * 
+	 * @param listener not <code>null</code>
+	 */
+	public void setChangeListener(FormChangeListener<T> listener);
+
 	public interface FormChangeListener<S> {
 
 		public void validate(S object, List<ValidationMessage> validationResult);

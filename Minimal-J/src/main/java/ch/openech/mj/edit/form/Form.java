@@ -62,6 +62,7 @@ import ch.openech.mj.toolkit.TextField;
 public class Form<T> implements IForm<T>, DemoEnabled {
 	private static Logger logger = Logger.getLogger(Form.class.getName());
 
+	protected final boolean editable;
 	private final ResourceBundle resourceBundle;
 	
 	private final int columns;
@@ -73,7 +74,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 	private final FormPanelChangeListener formPanelChangeListener = new FormPanelChangeListener();
 	private final FormPanelActionListener formPanelActionListener = new FormPanelActionListener();
 	
-	private IForm.FormChangeListener<T> formListener;
+	private IForm.FormChangeListener<T> changeListener;
 	private boolean changeFromOutsite;
 	private boolean showWarningIfValidationForUnsuedField = true;
 	
@@ -85,25 +86,29 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 	
 	private T object;
 
-	public Form(IForm.FormChangeListener formListener) {
-		this(formListener, 1);
+	public Form() {
+		this(true);
+	}
+
+	public Form(boolean editable) {
+		this(editable, 1);
 	}
 
 	public Form(int columns) {
-		this(null, columns);
+		this(true, columns);
 	}
 
-	public Form(IForm.FormChangeListener formListener, int columns) {
-		this(null, formListener, columns);
+	public Form(boolean editable, int columns) {
+		this(null, editable, columns);
 	}
 	
-	public Form(ResourceBundle resourceBundle, IForm.FormChangeListener<T> formListener) {
-		this(resourceBundle, formListener, 1);
+	public Form(ResourceBundle resourceBundle, boolean editable) {
+		this(resourceBundle, editable, 1);
 	}
 
-	public Form(ResourceBundle resourceBundle, IForm.FormChangeListener<T> formListener, int columns) {
+	public Form(ResourceBundle resourceBundle, boolean editable, int columns) {
 		this.resourceBundle = resourceBundle != null ? resourceBundle : Resources.getResourceBundle();
-		this.formListener = formListener;
+		this.editable = editable;
 		this.columns = columns;
 		this.layout = ClientToolkit.getToolkit().createGridLayout(columns, getColumnWidthPercentage());
 	}
@@ -114,10 +119,6 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 
 	protected int getAreaHeightPercentage() {
 		return 100;
-	}
-	
-	protected boolean isEditable() {
-		return formListener != null;
 	}
 	
 	// Methods to create the form
@@ -150,12 +151,12 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 	}
 	
 	protected FormField<?> createTextFormatField(StringLimitation textFormat, PropertyInterface property) {
-		return new TextFormatField(property, textFormat, isEditable());
+		return new TextFormatField(property, textFormat, editable);
 	}
 	
 	protected FormField<?> createField(PropertyInterface property) {
 		Class<?> fieldClass = property.getFieldClazz();
-		if (isEditable() && !property.isFinal()) {
+		if (editable && !property.isFinal()) {
 			if (fieldClass == String.class) {
 				int size = AnnotationUtil.getSize(property);
 				String codeName = AnnotationUtil.getCode(property);
@@ -165,16 +166,16 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 					return new CodeEditField(property, codeName);
 				}
 			} else if (fieldClass == LocalDate.class) {
-				return new AbstractJodaField.JodaDateField(property, isEditable());
+				return new AbstractJodaField.JodaDateField(property, editable);
 			} else if (fieldClass == LocalTime.class) {
-				return new AbstractJodaField.JodaTimeField(property, isEditable());
+				return new AbstractJodaField.JodaTimeField(property, editable);
 			} else if (fieldClass == ReadablePartial.class) {
-				return new AbstractJodaField.JodaPartialField(property, isEditable());
+				return new AbstractJodaField.JodaPartialField(property, editable);
 			} else if (Enum.class.isAssignableFrom(fieldClass)) {
 				return new EnumEditField(property);
 			} else if (fieldClass == Boolean.class) {
 				String checkBoxText = Resources.getObjectFieldName(resourceBundle, property, ".checkBoxText");
-				CheckBoxStringField field = new CheckBoxStringField(property, checkBoxText, isEditable());
+				CheckBoxStringField field = new CheckBoxStringField(property, checkBoxText, editable);
 				return field;
 			} else if (fieldClass == Integer.class) {
 				int size = AnnotationUtil.getSize(property);
@@ -207,7 +208,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 			} 
 			else if (fieldClass == Integer.class) return new NumberFormField.IntegerFormField(property);
 			else if (fieldClass == BigDecimal.class) return new NumberFormField.BigDecimalFormField(property);
-			else if (fieldClass == Set.class) return new EnumSetEditField(property, isEditable());
+			else if (fieldClass == Set.class) return new EnumSetEditField(property, editable);
 			
 		}
 		logger.severe("No FormField could be created for: " + property.getFieldName() + " of class " + fieldClass.getName());
@@ -368,7 +369,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 		changeFromOutsite = true;
 		fillWithDemoData(object);
 		readValueFromObject();
-		formListener.changed();
+		changeListener.changed();
 		changeFromOutsite = false;
 	}
 
@@ -411,7 +412,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 
 	@Override
 	public void setObject(T object) {
-		if (formListener == null) throw new IllegalStateException("Listener has to be set on a editable Form");
+		if (editable && changeListener == null) throw new IllegalStateException("Listener has to be set on a editable Form");
 		changeFromOutsite = true;
 		this.object = object;
 		readValueFromObject();
@@ -433,12 +434,19 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 		return property.getFieldName();
 	}
 	
+	@Override
+	public void setChangeListener(IForm.FormChangeListener<T> changeListener) {
+		if (changeListener == null) throw new IllegalArgumentException("Listener on Form must not be null");
+		if (this.changeListener != null) throw new IllegalStateException("Listener on Form cannot be changed");
+		this.changeListener = changeListener;
+	}
+
 	private class FormPanelChangeListener implements ChangeListener {
 
 		@Override
 		public void stateChanged(ChangeEvent event) {
 			if (changeFromOutsite) return;
-			if (formListener == null) {
+			if (changeListener == null) {
 				logger.severe("Editable Form must have a listener");
 				return;
 			}
@@ -461,7 +469,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 			updatePropertyValidation(property, newValue);
 			updateValidation();
 
-			formListener.changed();
+			changeListener.changed();
 		}
 
 
@@ -504,7 +512,7 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 					if (field.getValue() instanceof Enable) {
 						((Enable) field.getValue()).setEnabled(e ^ invert);
 					} else {
-						if (isEditable()) {
+						if (editable) {
 							logger.severe("field " + property.getFieldPath() + " should implement Enable");
 						} else {
 							logger.fine("field " + property.getFieldPath() + " should maybe implement Enable");
@@ -535,7 +543,9 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			formListener.commit();
+			if (changeListener != null) {
+				changeListener.commit();
+			}
 		}
 
 	}
@@ -552,7 +562,9 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 		}
 		validateForEmpty(validationMessages);
 		validateForInvalid(validationMessages);
-		formListener.validate(object, validationMessages);
+		if (changeListener != null) {
+			changeListener.validate(object, validationMessages);
+		}
 		indicate(validationMessages);
 	}
 
@@ -590,7 +602,10 @@ public class Form<T> implements IForm<T>, DemoEnabled {
 			setValidationMessage(property, filteredValidationMessages);
 		}
 		
-		formListener.indicate(validationMessages, allUsedFieldsValid(validationMessages));
+		if (changeListener != null) {
+			changeListener.indicate(validationMessages, allUsedFieldsValid(validationMessages));
+		}
+		
 	}
 	
 	private boolean allUsedFieldsValid(List<ValidationMessage> validationMessages) {

@@ -4,18 +4,19 @@ import ch.openech.mj.db.Table;
 import ch.openech.mj.edit.Editor;
 import ch.openech.mj.edit.form.IForm;
 import ch.openech.mj.example.model.Lend;
+import ch.openech.mj.page.EmptyPage;
 
 public class AddLendEditor extends Editor<Lend> {
 
 	@Override
-	public IForm<Lend> createForm(IForm.FormChangeListener<Lend> formListener) {
-		return new LendForm(formListener);
+	public IForm<Lend> createForm() {
+		return new LendForm(true);
 	}
 	
 	@Override
-	public boolean save(Lend lend) throws Exception {
+	public String save(Lend lend) throws Exception {
 		int id = ((Table<Lend>) ExamplePersistence.getInstance().getTable(Lend.class)).insert(lend);
-		return true;
+		return "";
 	}
 
 	@Override

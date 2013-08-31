@@ -1,13 +1,13 @@
 package ch.openech.mj.edit.fields;
 
-import ch.openech.mj.edit.Edit;
-import ch.openech.mj.edit.EditDialogAction;
+import ch.openech.mj.edit.Editor;
+import ch.openech.mj.edit.EditorDialogAction;
 import ch.openech.mj.model.PropertyInterface;
 import ch.openech.mj.resources.Resources;
 import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IAction;
 import ch.openech.mj.toolkit.IComponent;
-import ch.openech.mj.toolkit.TextField;
+import ch.openech.mj.toolkit.ResourceAction;
 
 /**
  * The state of an ObjectField is saved in the object variable.<p>
@@ -32,7 +32,25 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 		
 	}
 
-	public abstract class ObjectFieldPartEditor<P> extends Edit<P> {
+	public abstract class ObjectFieldPartEditor<P> extends Editor<P> {
+		private final String title;
+		
+		public ObjectFieldPartEditor() {
+			this.title = null;
+		}
+		
+		public ObjectFieldPartEditor(String title) {
+			this.title = Resources.getString(title + ".text");
+		}
+
+		@Override
+		public final String getTitle() {
+			if (title != null) {
+				return title;
+			} else {
+				return super.getTitle();
+			}
+		}
 
 		@Override
 		public P load() {
@@ -40,10 +58,10 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 		}
 		
 		@Override
-		public boolean save(P part) {
+		public Object save(P part) {
 			setPart(ObjectFlowField.this.getObject(), part);
 			fireObjectChange();
-			return true;
+			return SAVE_SUCCESSFUL;
 		}
 
 		protected abstract P getPart(T object);
@@ -53,47 +71,43 @@ public abstract class ObjectFlowField<T> extends ObjectField<T> {
 	}
 	
 	// why public
-	public class RemoveObjectAction implements IAction {
+	public class RemoveObjectAction extends ResourceAction {
 		@Override
-		public void action(IComponent source) {
+		public void action(IComponent context) {
 			ObjectFlowField.this.setObject(null);
 		}
 	}
 	
 	protected void addObject(Object object) {
 		if (object != null) {
-			TextField textField = ClientToolkit.getToolkit().createReadOnlyTextField();
-			textField.setText(object.toString());
-			visual.add(textField);
+			visual.add(ClientToolkit.getToolkit().createLabel(object.toString()));
 		}
 	}
 
 	protected void addHtml(String html) {
-		visual.addHtml(html);
+		if (html != null) {
+			visual.add(ClientToolkit.getToolkit().createLabel(html));
+		}
 	}
-
+	
 	protected void addGap() {
 		visual.addGap();
 	}
-
-	public void addAction(IAction action) {
-		addAction(Resources.getString(action.getClass().getSimpleName() + ".text"), action);
+	
+	protected void addAction(IAction action) {
+		visual.add(ClientToolkit.getToolkit().createLabel(action));
 	}
 
-	public void addLink(String text, String link) {
-		visual.add(ClientToolkit.getToolkit().createLink(text, link));
-	}
-
-	@Deprecated
-	public void addAction(Edit edit) {
-		addAction(edit, edit.getClass().getSimpleName());
-	}
-
-	@Deprecated
-	public void addAction(Edit edit, String text) {
-		text = Resources.getString(text + ".text");
-		EditDialogAction editDialogAction = new EditDialogAction(edit);
-		visual.add(ClientToolkit.getToolkit().createLink(text, editDialogAction));
+	protected void addLink(String text, String address) {
+		visual.add(ClientToolkit.getToolkit().createLink(text, address));
 	}
 	
+	protected void addAction(Editor<?> editor) {
+		addAction(new EditorDialogAction(editor));
+	}
+
+	protected void addAction(Editor<?> editor, String actionName) {
+		addAction(new EditorDialogAction(editor, actionName));
+	}
+
 }

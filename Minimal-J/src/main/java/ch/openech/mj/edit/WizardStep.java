@@ -1,12 +1,11 @@
 package ch.openech.mj.edit;
 
-
 /**
  * Named <i>Step</i> so not to be confused with the concept of the pages.
  * Loosly based on jface WizardPages.
  * 
  */
-public abstract class WizardStep<T> extends Edit<T> {
+public abstract class WizardStep<T> extends Editor<T> {
 
     /**
 	 * Returns this dialog step's title.
@@ -61,7 +60,7 @@ public abstract class WizardStep<T> extends Edit<T> {
      * Returns the wizard step that would to be shown if the user was to
      * press the Back button.
      *
-     * @return the previous wizard step, or <code>null</code> if none
+     * @return the previous wizard step, or <code>null</code> if this is the first step
      */
     public abstract WizardStep<?> getPreviousStep();
     

@@ -2,7 +2,6 @@ package ch.openech.mj.toolkit;
 
 import java.io.InputStream;
 
-import javax.swing.Action;
 import javax.swing.event.ChangeListener;
 
 /**
@@ -35,6 +34,8 @@ public abstract class ClientToolkit {
 	
 	public abstract IComponent createLabel(String string);
 	
+	public abstract IComponent createLabel(IAction action);
+	
 	public abstract IComponent createTitle(String string);
 
 	public abstract TextField createReadOnlyTextField();
@@ -50,8 +51,8 @@ public abstract class ClientToolkit {
 	public abstract CheckBox createCheckBox(ChangeListener changeListener, String text);
 
 	public abstract <T> ITable<T> createTable(Class<T> clazz, Object[] fields);
-	
-	public abstract ILink createLink(String text, String address);
+
+	public abstract IComponent createLink(String text, String address);
 	
 	// Layouts
 	
@@ -65,10 +66,10 @@ public abstract class ClientToolkit {
 
 	public abstract IComponent createFormAlignLayout(IComponent content);
 
-	public abstract IComponent createEditorLayout(IComponent content, Action[] actions);
+	// Dialogs
 
-	public abstract IComponent createSearchLayout(TextField text, Action searchAction, IComponent content, Action... actions);
-
+	public abstract IDialog createDialog(IComponent parent, String title, IComponent content, IAction... actions);
+	
 	// Notification
 	
 	public abstract void showMessage(Object parent, String text);
@@ -77,24 +78,14 @@ public abstract class ClientToolkit {
 	
 	public abstract void showConfirmDialog(IComponent component, String message, String title, int type, ConfirmDialogListener listener);
 	
-	public abstract ProgressListener showProgress(Object parent, String text);
-	
-	public abstract IDialog openDialog(IComponent parent, IComponent content, String title);
-	        
 	// Focus
 	
-	public abstract void focusFirstComponent(IComponent component);
+//	public abstract void focusFirstComponent(IComponent component);
 	
 	// Up / Dowload
 	
-	public abstract void export(Object parent, String buttonText, ExportHandler exportHandler);
+	public abstract void export(IComponent parent, String buttonText, ExportHandler exportHandler);
 
-	public abstract InputStream imprt(Object parent, String buttonText);
+	public abstract InputStream imprt(IComponent parent, String buttonText);
 	
-	@Deprecated
-	public abstract IComponent exportLabel(ExportHandler exportHandler, String label);
-
-	@Deprecated
-	public abstract IComponent importField(ImportHandler importHandler, String buttonText);
-
 }

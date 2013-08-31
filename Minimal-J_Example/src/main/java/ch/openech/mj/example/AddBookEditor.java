@@ -3,21 +3,20 @@ package ch.openech.mj.example;
 import ch.openech.mj.edit.Editor;
 import ch.openech.mj.edit.form.IForm;
 import ch.openech.mj.example.model.Book;
-import ch.openech.mj.example.page.BookViewPage;
-import ch.openech.mj.page.Page;
+import ch.openech.mj.example.page.BookPage;
+import ch.openech.mj.page.PageLink;
 
 public class AddBookEditor extends Editor<Book> {
 
 	@Override
-	public IForm<Book> createForm(IForm.FormChangeListener<Book> formListener) {
-		return new BookForm(formListener);
+	public IForm<Book> createForm() {
+		return new BookForm(true);
 	}
 	
 	@Override
-	public boolean save(Book book) throws Exception {
+	public String save(Book book) throws Exception {
 		int id = ExamplePersistence.getInstance().book().insert(book);
-		setFollowLink(Page.link(BookViewPage.class, Integer.toString(id)));
-		return true;
+		return PageLink.link(BookPage.class, Integer.toString(id));
 	}
 
 	@Override

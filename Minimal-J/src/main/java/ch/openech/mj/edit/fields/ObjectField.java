@@ -52,13 +52,31 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 		return visual;
 	}
 	
-	protected abstract IForm<T> createFormPanel(IForm.FormChangeListener<T> formListener);
+	protected abstract IForm<T> createFormPanel();
 
 	public class ObjectFieldEditor extends Editor<T> {
+		private final String title;
+		
+		public ObjectFieldEditor() {
+			this(null);
+		}
+
+		public ObjectFieldEditor(String title) {
+			this.title = title;
+		}
+		
+		@Override
+		public String getTitle() {
+			if (title != null) {
+				return title;
+			} else {
+				return super.getTitle();
+			}
+		}
 
 		@Override
-		public IForm<T> createForm(IForm.FormChangeListener<T> formListener) {
-			return ObjectField.this.createFormPanel(formListener);
+		public IForm<T> createForm() {
+			return ObjectField.this.createFormPanel();
 		}
 
 		@Override
@@ -74,9 +92,9 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 		}
 
 		@Override
-		public boolean save(T edited) {
+		public Object save(T edited) {
 			ObjectField.this.setObject(edited);
-			return true;
+			return SAVE_SUCCESSFUL;
 		}
 	}
 	
@@ -96,13 +114,13 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 	}
 
 	protected void display() {
-		visual.removeAll();
+		visual.clear();
 		if (enabled) {
 			if (object != null) {
 				show(object);
 			}
 			if (isEditable()) {
-		showActions();
+				showActions();
 			}
 		}
 	}
@@ -121,7 +139,6 @@ public abstract class ObjectField<T> extends AbstractEditField<T> implements Ena
 	public void setEnabled(boolean enabled) {
 		if (enabled != this.enabled) {
 			this.enabled = enabled;
-			visual.setEnabled(enabled);
 			display();
 		}
 	}

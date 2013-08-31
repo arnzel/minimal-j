@@ -6,8 +6,6 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -19,16 +17,22 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import ch.openech.mj.application.ApplicationContext;
+import ch.openech.mj.edit.Editor;
+import ch.openech.mj.edit.Editor.EditorListener;
+import ch.openech.mj.edit.form.IForm;
 import ch.openech.mj.page.Page;
 import ch.openech.mj.page.PageContext;
+import ch.openech.mj.page.PageLink;
 import ch.openech.mj.page.RefreshablePage;
-import ch.openech.mj.resources.ResourceAction;
 import ch.openech.mj.swing.component.EditablePanel;
 import ch.openech.mj.swing.component.History;
 import ch.openech.mj.swing.component.History.HistoryListener;
-import ch.openech.mj.swing.toolkit.SwingClientToolkit.SwingActionLink;
+import ch.openech.mj.swing.toolkit.SwingClientToolkit;
+import ch.openech.mj.swing.toolkit.SwingClientToolkit.SwingLink;
+import ch.openech.mj.swing.toolkit.SwingEditorDialog;
+import ch.openech.mj.swing.toolkit.SwingEditorLayout;
+import ch.openech.mj.swing.toolkit.SwingInternalFrame;
 import ch.openech.mj.swing.toolkit.SwingSwitchLayout;
-import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IComponent;
 
 public class SwingTab extends EditablePanel implements IComponent, PageContext {
@@ -43,12 +47,13 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 	
 	private final History<String> history;
 	private final SwingPageContextHistoryListener historyListener;
-	private final SwingLinkListener linkListener;
 
 	private Page page;
 	private List<String> pageLinks;
 	private int indexInPageLinks;
 
+	private Editor<?> editor;
+	
 	public SwingTab(SwingFrame frame) {
 		super();
 		this.frame = frame;
@@ -56,8 +61,6 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 		historyListener = new SwingPageContextHistoryListener();
 		history = new History<String>(historyListener);
 
-		linkListener = new SwingLinkListener();
-		
 		previousAction = new PreviousPageAction();
 		nextAction = new NextPageAction();
 		refreshAction = new RefreshAction();
@@ -85,6 +88,10 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 		return page;
 	}
 	
+	public Editor<?> getEditor() {
+		return editor;
+	}
+	
 	void onHistoryChanged() {
 		updateActions();
 		menuBar.onHistoryChanged();
@@ -93,7 +100,7 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 	}
 
 	protected void updateActions() {
-		if (getVisiblePage() != null && !getVisiblePage().isExclusive()) {
+		if (getVisiblePage() != null && editor == null) {
 			previousAction.setEnabled(hasPast());
 			nextAction.setEnabled(hasFuture());
 			refreshAction.setEnabled(getVisiblePage() instanceof RefreshablePage);
@@ -107,24 +114,24 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 			downAction.setEnabled(false);
 		}
 	}
-
+ 
 	//
 	
-	protected class PreviousPageAction extends ResourceAction {
+	protected class PreviousPageAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			previous();
 		}
 	}
 	
-	protected class NextPageAction extends ResourceAction {
+	protected class NextPageAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			next();
 		}
 	}
 
-	protected class RefreshAction extends ResourceAction {
+	protected class RefreshAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			refresh();
@@ -137,21 +144,21 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 		}
 	}
 
-	private class UpAction extends ResourceAction {
+	private class UpAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			up();
 		}
 	}
 
-	private class DownAction extends ResourceAction {
+	private class DownAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			down();
 		}
 	}
 
-	private class CloseTabAction extends ResourceAction {
+	private class CloseTabAction extends SwingResourceAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			frame.closeTab();
@@ -180,39 +187,30 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 	private class SwingPageContextHistoryListener implements HistoryListener {
 		@Override
 		public void onHistoryChanged() {
-			page = Page.createPage(SwingTab.this, history.getPresent());
+			page = PageLink.createPage(SwingTab.this, history.getPresent());
 			show(page);
 			SwingTab.this.onHistoryChanged();
 		}
 
 		private void show(Page page) {
 			switchLayout.show((IComponent) page.getComponent());
-			findLinks((Component) page.getComponent());
-			ClientToolkit.getToolkit().focusFirstComponent(page.getComponent());
+			registerMouseListener((Component) page.getComponent());
+			SwingClientToolkit.focusFirstComponent(page.getComponent());
 		}
 	}
-
-	private void findLinks(Component component) {
-		if (component instanceof SwingActionLink) {
-			((SwingActionLink) component).setMouseListener(linkListener);
+	
+	private void registerMouseListener(Component component) {
+		if (component instanceof SwingLink) {
+			// TODO 
+			// ((SwingLink) component).setMouseListener(mouseListener);
 		}
 		if (component instanceof Container) {
-			Container container = (Container) component;
-			for (Component c : container.getComponents()) {
-				findLinks(c);
+			for (Component c : ((Container) component).getComponents()) {
+				registerMouseListener(c);
 			}
 		}
 	}
-	
-	private class SwingLinkListener extends MouseAdapter {
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			SwingActionLink link = (SwingActionLink) e.getSource();
-			String pageLink = link.getAddress();
-			show(pageLink);
-		}
-	}
-	
+
 	public void add(String pageLink) {
 		history.add(pageLink);
 	}
@@ -245,12 +243,10 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 		history.dropFuture();
 	}
 
-	@Override
 	public PageContext addTab() {
 		return frame.addTab();
 	}
 
-	@Override
 	public void closeTab() {
 		if (hasPast()) {
 			previous();
@@ -279,13 +275,46 @@ public class SwingTab extends EditablePanel implements IComponent, PageContext {
 			if (pageLinks != null && !pageLinks.contains(pageLink)) {
 				pageLinks = null;
 			}
-			if (page != null && page.isExclusive()) {
-				PageContext newPageContext = addTab();
-				newPageContext.show(pageLink);
-			} else {
-				add(pageLink);
-			}
+			add(pageLink);
 		}
+	}
+	
+	@Override
+	public void show(Editor<?> editor) {
+		this.editor = editor;
+		
+		IForm<?> form = editor.startEditor();
+		SwingEditorLayout layout = new SwingEditorLayout(form.getComponent(), editor.getActions());
+		final SwingInternalFrame dialog = new SwingInternalFrame(this, layout, editor.getTitle());
+		
+		dialog.setCloseListener(new SwingEditorDialog.CloseListener() {
+			@Override
+			public boolean close() {
+				SwingTab.this.editor.checkedClose();
+				return SwingTab.this.editor.isFinished();
+			}
+		});
+		
+		editor.setEditorListener(new EditorListener() {
+			@Override
+			public void saved(Object saveResult) {
+				dialog.closeDialog();
+				dialog.dispose();
+				SwingTab.this.editor = null;
+				if (saveResult instanceof String) {
+					show((String) saveResult);
+				}
+			}
+
+			@Override
+			public void canceled() {
+				dialog.closeDialog();
+				dialog.dispose();
+				SwingTab.this.editor = null;
+			}
+		});
+		dialog.openDialog();
+		SwingClientToolkit.focusFirstComponent(form.getComponent());
 	}
 
 	@Override

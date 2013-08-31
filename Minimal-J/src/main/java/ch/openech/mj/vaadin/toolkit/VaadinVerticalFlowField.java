@@ -18,18 +18,19 @@ public class VaadinVerticalFlowField extends VerticalLayout implements FlowField
 	}
 
 	@Override
-	public void removeAll() {
+	public void clear() {
 		removeAllComponents();
 	}
 
+	@Override
+	public void add(IComponent component) {
+		addComponent((Component) component);
+	}
+	
 	@Override
 	public void addGap() {
 		addComponent(new Label("."));
 	}
 
-	@Override
-	public void add(IComponent component) {
-		super.addComponent((Component) component);
-	}
 	
 }

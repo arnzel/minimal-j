@@ -47,10 +47,10 @@ public class EnumSetEditField<E extends Set<Enum<?>>> extends ObjectFlowField<E>
 	}
 
 	@Override
-	protected IForm<E> createFormPanel(IForm.FormChangeListener<E> formListener) {
+	protected IForm<E> createFormPanel() {
 		String bundleName = enumClass.getName();
 		ResourceBundle resourceBundle = ResourceBundle.getBundle(bundleName);
-		Form<E> form = new Form<E>(formListener, resourceBundle, true);
+		Form<E> form = new Form<E>(resourceBundle, true);
 		for (Object object : allowedValues) {
 			Enum<?> value = (Enum<?>) object;
 			form.line(new CheckBoxField(new EnumSetFieldEditorPropertyInterface(value), EnumUtils.getText((Enum) object)));

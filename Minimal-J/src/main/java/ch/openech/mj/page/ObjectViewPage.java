@@ -4,35 +4,27 @@ import ch.openech.mj.edit.form.IForm;
 import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IComponent;
 
-public abstract class ObjectViewPage<T> extends Page implements RefreshablePage {
+public abstract class ObjectViewPage<T> extends AbstractPage {
 
 	private IForm<T> objectPanel;
 	private IComponent alignLayout;
 	
-	public ObjectViewPage() {
+	public ObjectViewPage(PageContext pageContext) {
+		super(pageContext);
 	}
 
-	protected abstract T loadObject();
+	protected abstract IForm<T> createForm();
 
-	protected abstract IForm<T> createForm(IForm.FormChangeListener<T> formListener);
+	protected abstract T getObject();
 	
 	@Override
 	public IComponent getComponent() {
 		if (alignLayout == null) {
-			objectPanel = createForm(null);
+			objectPanel = createForm();
+			objectPanel.setObject(getObject());
 			alignLayout = ClientToolkit.getToolkit().createFormAlignLayout(objectPanel.getComponent());
-			refresh();
 		}
 		return alignLayout;
 	}
 	
-	protected void showObject(T object) {
-		objectPanel.setObject(object);
-	}
-	
-	@Override
-	public void refresh() {
-		showObject(loadObject());
-
-	}
 }

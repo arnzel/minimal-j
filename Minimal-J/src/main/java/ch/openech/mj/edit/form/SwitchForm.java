@@ -17,6 +17,11 @@ public class SwitchForm<T> implements IForm<T> {
 		return switchLayout;
 	}
 
+	@Override
+	public void setChangeListener(IForm.FormChangeListener<T> changeListener) {
+		// a SwitchForm doesnt change (only the contained forms)
+	}
+
 	public void setForm(IForm<?> form) {
 		switchLayout.show(form.getComponent());
 	}
