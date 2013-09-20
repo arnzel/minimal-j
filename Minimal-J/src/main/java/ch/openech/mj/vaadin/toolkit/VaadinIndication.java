@@ -2,9 +2,9 @@ package ch.openech.mj.vaadin.toolkit;
 
 import java.util.List;
 
-import com.vaadin.terminal.CompositeErrorMessage;
-import com.vaadin.terminal.ErrorMessage;
-import com.vaadin.terminal.UserError;
+import com.vaadin.server.CompositeErrorMessage;
+import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.UserError;
 import com.vaadin.ui.AbstractComponent;
 
 public class VaadinIndication {

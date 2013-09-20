@@ -12,7 +12,9 @@ import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.util.StringUtils;
 import ch.openech.mj.vaadin.toolkit.VaadinClientToolkit;
 
-import com.vaadin.Application;
+import com.vaadin.annotations.Theme;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.ui.UI;
 
 /**
  * TODO VaadinApplication should make Preferences persistent

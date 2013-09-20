@@ -3,17 +3,18 @@ package ch.openech.mj.vaadin.toolkit;
 import ch.openech.mj.toolkit.ProgressListener;
 
 import com.vaadin.ui.ProgressIndicator;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
 public class VaadinProgressDialog extends Window implements ProgressListener {
 
 	private final ProgressIndicator progressIndicator;
-	private final Window parentWindow;
+	private final UI ui;
 	
-	public VaadinProgressDialog(Window parentWindow, String title) {
+	public VaadinProgressDialog(UI ui, String title) {
 		super(title);
-		this.parentWindow = parentWindow;
+		this.ui = ui;
 		progressIndicator = new ProgressIndicator();
 		
 		VerticalLayout layout = new VerticalLayout();
@@ -21,7 +22,7 @@ public class VaadinProgressDialog extends Window implements ProgressListener {
 		setContent(layout);
 		
 		setModal(true);
-		parentWindow.addWindow(this);
+		ui.addWindow(this);
 	}
 
 	
@@ -29,7 +30,7 @@ public class VaadinProgressDialog extends Window implements ProgressListener {
 	public void showProgress(int value, int maximum) {
 		if (value == maximum) {
 			setVisible(false);
-			parentWindow.requestRepaint();
+			ui.requestRepaint();
 		} else {
 			progressIndicator.setIndeterminate(false);
 			progressIndicator.setValue(((float) value) / ((float) maximum));

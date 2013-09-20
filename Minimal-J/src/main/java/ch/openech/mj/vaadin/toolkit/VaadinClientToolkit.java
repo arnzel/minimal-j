@@ -158,27 +158,20 @@ public class VaadinClientToolkit extends ClientToolkit {
 	@Override
 	public void showMessage(Object parent, String text) {
 		// TODO Vaadin zeigt Notifikationen statt Informationsdialog
-		Component parentComponent = (Component) parent;
-		Window window = parentComponent.getWindow();
-		window.showNotification("Information", text, Notification.TYPE_HUMANIZED_MESSAGE);
+		Notification.show("Information", text, Notification.Type.HUMANIZED_MESSAGE);
 	}
 	
 	@Override
 	public void showError(Object parent, String text) {
 		// TODO Vaadin zeigt Notifikationen statt Informationsdialog
-		Component parentComponent = (Component) parent;
-		Window window = parentComponent.getWindow();
-		window.showNotification("Fehler", text, Notification.TYPE_ERROR_MESSAGE);
+		Notification.show("Fehler", text, Notification.Type.ERROR_MESSAGE);
 	}
 
 	@Override
 	public void showConfirmDialog(IComponent c, String message, String title, int optionType, ConfirmDialogListener listener) {
 		Component component = (Component) c;
-		Window window = component.getWindow();
-		while (window.getParent() != null) {
-			window = window.getParent();
-		}
-		new VaadinConfirmDialog(window, message, title, optionType, listener);
+		UI ui = component.getUI();
+		new VaadinConfirmDialog(ui, message, title, optionType, listener);
 	}
 
 	@Override

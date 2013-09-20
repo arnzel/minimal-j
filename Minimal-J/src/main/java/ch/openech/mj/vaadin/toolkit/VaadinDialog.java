@@ -33,7 +33,7 @@ public class VaadinDialog extends Window implements IDialog {
 		@Override
 		public void windowClose(CloseEvent e) {
 			if (closeListener == null || closeListener.close()) {
-				parentWindow.removeWindow(VaadinDialog.this);
+				ui.removeWindow(VaadinDialog.this);
 			}
 		}
 	}
@@ -73,7 +73,7 @@ public class VaadinDialog extends Window implements IDialog {
 	}
 
 	@Override
-	protected void close() {
+	public void close() {
 		// super.close(); DONT, would always close without ask
 		fireClose();
 	}

@@ -11,7 +11,6 @@ import ch.openech.mj.toolkit.ConfirmDialogListener;
 import com.vaadin.event.Action;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutAction.KeyCode;
-import com.vaadin.terminal.gwt.server.WebApplicationContext;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -20,6 +19,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.NativeButton;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.Reindeer;
@@ -48,15 +48,14 @@ public class VaadinConfirmDialog extends Window {
 	 * @param optionType see JOptionPane
 	 * @param listener
 	 */
-	public VaadinConfirmDialog(Window window, String message, String title, int optionType, ConfirmDialogListener listener) {
+	public VaadinConfirmDialog(UI ui, String message, String title, int optionType, ConfirmDialogListener listener) {
 		this.listener = listener;
 		
-   	    WebApplicationContext context = (WebApplicationContext) window.getApplication().getContext();
-        Locale locale = context.getBrowser().getLocale();
+        Locale locale = ui.getLocale();
 		
 		setCaption(title);
 		
-        addListener(new Window.CloseListener() {
+        addCloseListener(new Window.CloseListener() {
             @Override
 			public void windowClose(CloseEvent ce) {
                 if (isEnabled()) {
@@ -102,14 +101,14 @@ public class VaadinConfirmDialog extends Window {
         	buttonYes.setClickShortcut(KeyCode.ENTER, null);
             buttons.addComponent(buttonYes);
             buttons.setComponentAlignment(buttonYes, Alignment.MIDDLE_RIGHT);
-            buttonYes.addListener(new ConfirmDialogButtonListener(JOptionPane.YES_OPTION));
+            buttonYes.addClickListener(new ConfirmDialogButtonListener(JOptionPane.YES_OPTION));
             
             buttonNo = new NativeButton(UIManager.getString("OptionPane.noButtonText", locale));
         	buttonNo.setData(true);
         	buttonNo.setClickShortcut(KeyCode.ESCAPE, null);
             buttons.addComponent(buttonNo);
             buttons.setComponentAlignment(buttonNo, Alignment.MIDDLE_RIGHT);
-            buttonNo.addListener(new ConfirmDialogButtonListener(JOptionPane.NO_OPTION));
+            buttonNo.addClickListener(new ConfirmDialogButtonListener(JOptionPane.NO_OPTION));
         }
         
         if (optionType == JOptionPane.OK_CANCEL_OPTION) {
@@ -118,7 +117,7 @@ public class VaadinConfirmDialog extends Window {
             buttonOk.setClickShortcut(KeyCode.ENTER, null);
             buttons.addComponent(buttonOk);
             buttons.setComponentAlignment(buttonOk, Alignment.MIDDLE_RIGHT);
-            buttonOk.addListener(new ConfirmDialogButtonListener(JOptionPane.OK_OPTION));
+            buttonOk.addClickListener(new ConfirmDialogButtonListener(JOptionPane.OK_OPTION));
         }
 
         if (optionType == JOptionPane.YES_NO_CANCEL_OPTION || optionType == JOptionPane.OK_CANCEL_OPTION) {
@@ -127,7 +126,7 @@ public class VaadinConfirmDialog extends Window {
             buttonCancel.setClickShortcut(KeyCode.ESCAPE, null);
             buttons.addComponent(buttonCancel);
             buttons.setComponentAlignment(buttonCancel, Alignment.MIDDLE_RIGHT);
-            buttonCancel.addListener(new ConfirmDialogButtonListener(JOptionPane.CANCEL_OPTION));
+            buttonCancel.addClickListener(new ConfirmDialogButtonListener(JOptionPane.CANCEL_OPTION));
         }
         
         // Keyboard support
@@ -171,7 +170,7 @@ public class VaadinConfirmDialog extends Window {
         
         setModal(true);
         center();
-        window.addWindow(this);
+        ui.addWindow(this);
         
         focusIndex = buttonCount - 1;
         ((Button) buttons.getComponent(focusIndex + 1)).focus();

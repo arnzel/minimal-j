@@ -22,6 +22,8 @@ import ch.openech.mj.vaadin.toolkit.VaadinEditorLayout;
 
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
+import com.vaadin.server.Page.UriFragmentChangedEvent;
+import com.vaadin.server.Page.UriFragmentChangedListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -80,7 +82,6 @@ public class VaadinWindow extends Window implements PageContext {
 			nav.setComponentAlignment(searchComponent, Alignment.MIDDLE_RIGHT);
 		}
 		
-		ufu = new UriFragmentUtility();
 		ufu.addListener(new VaadinWindowFragmentChangedListener());
 		windowContent.addComponent(ufu);
 		
@@ -111,7 +112,7 @@ public class VaadinWindow extends Window implements PageContext {
 		});
         
         Button button = new Button("Suche");
-        button.addListener(new ClickListener() {
+        button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				showSearchPage();
@@ -254,11 +255,11 @@ public class VaadinWindow extends Window implements PageContext {
 		setCaption(MjApplication.getApplication().getWindowTitle(this));
 	}
 	
-	private class VaadinWindowFragmentChangedListener implements FragmentChangedListener {
+	private class VaadinWindowFragmentChangedListener implements UriFragmentChangedListener {
 
 		@Override
-		public void fragmentChanged(FragmentChangedEvent source) {
-			String pageLink = source.getUriFragmentUtility().getFragment();
+		public void uriFragmentChanged(UriFragmentChangedEvent event) {
+			String pageLink = event.getUriFragment();
 			updateContent(pageLink);
 		}
 	}
