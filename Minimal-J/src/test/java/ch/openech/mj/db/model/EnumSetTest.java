@@ -1,6 +1,5 @@
 package ch.openech.mj.db.model;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,31 +7,12 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ch.openech.mj.db.DbPersistence;
 import ch.openech.mj.model.EnumUtils;
 
 public class EnumSetTest {
-
-	private static DbPersistence persistence;
-	
-	@BeforeClass
-	public static void setupDb() throws SQLException {
-		persistence = new DbPersistence(DbPersistence.embeddedDataSource());
-
-//		persistence = new DbPersistence(DbPersistence.mariaDbDataSource("OpenEch", "APP", "APP")) {
-//
-//			@Override
-//			protected boolean createTablesOnInitialize() {
-//				return true;
-//			}
-//			
-//		};
-
-		persistence.addClass(ObjectWithE.class);
-	}
 
 	@Test
 	public void testEnumToIntFirstElement() {
@@ -81,14 +61,21 @@ public class EnumSetTest {
 	}
 
 	private boolean testWithDb(Set<E> testSet) {
-		ObjectWithE object = new ObjectWithE();
-		object.setOfE.addAll(testSet);
-		int id = persistence.insert(object);
-		
-		ObjectWithE readObject = persistence.read(ObjectWithE.class, id);
-		Set<E> resultSet = readObject.setOfE;
-		
-		return compareSets(testSet, resultSet);
+		boolean ok = true;
+		for (int i = 0; i<2; i++) {
+			DbPersistence persistence = new DbPersistence(i == 0 ? DbPersistence.embeddedDataSource() : DbPersistence.mariaDbDataSource("OpenEch", "APP", "APP"), true);
+			persistence.addClass(ObjectWithE.class);
+			
+			ObjectWithE object = new ObjectWithE();
+			object.setOfE.addAll(testSet);
+			int id = persistence.insert(object);
+			
+			ObjectWithE readObject = persistence.read(ObjectWithE.class, id);
+			Set<E> resultSet = readObject.setOfE;
+			
+			ok &= compareSets(testSet, resultSet);
+		}
+		return ok;
 	}
 
 	private boolean compareSets(Set<E> testSet, Set<E> resultSet) {
