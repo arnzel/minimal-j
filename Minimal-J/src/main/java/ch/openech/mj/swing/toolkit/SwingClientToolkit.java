@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.concurrent.Callable;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -33,8 +34,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.text.JTextComponent;
 
-import ch.openech.mj.search.Lookup;
-import ch.openech.mj.search.Search;
+import ch.openech.mj.model.Index;
 import ch.openech.mj.swing.component.EditablePanel;
 import ch.openech.mj.swing.component.SwingCaption;
 import ch.openech.mj.toolkit.Caption;
@@ -59,6 +59,18 @@ import ch.openech.mj.toolkit.TextField;
 
 public class SwingClientToolkit extends ClientToolkit {
 
+	private final String url;
+	private final int port;
+	
+	public SwingClientToolkit() {
+		this(null, 0);
+	}
+	
+	public SwingClientToolkit(String url, int port) {
+		this.url = url;
+		this.port = port;
+	}
+	
 	@Override
 	public IComponent createLabel(String string) {
 		return new SwingLabel(string);
@@ -205,8 +217,8 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public <T> ITable<T> createTable(Lookup<T> lookup, Object[] fields) {
-		return new SwingTable<T>(lookup, fields);
+	public <T> ITable<T> createTable(TableDataProvider<T> dataProvider, Object... keys) {
+		return new SwingTable<T>(dataProvider, keys);
 	}
 
 	public static ProgressListener showProgress(Object parent, String text) {
@@ -254,9 +266,9 @@ public class SwingClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public <T> IDialog createSearchDialog(IComponent parent, Search<T> search, Object[] keys, TableActionListener listener) {
-		SwingSearchPanel<T> panel = new SwingSearchPanel<T>(search, keys, listener);
-		return createDialog(parent, null, panel);
+	public void showSearchDialog(IComponent parent, Index index, Object[] keys, TableActionListener listener) {
+		SwingSearchPanel panel = new SwingSearchPanel(index, keys, listener);
+		createDialog(parent, null, panel).openDialog();
 	}
 
 	@Override
@@ -312,6 +324,12 @@ public class SwingClientToolkit extends ClientToolkit {
         return new SwingLink(text, address);
 	}
 	
+	@Override
+	public <T> T run(final Callable<T> callable) throws Exception {
+		// TODO through connection
+		return callable.call();
+	}
+
 	public static class SwingLink extends JLabel implements ILink {
 		private static final long serialVersionUID = 1L;
 		private final String address;

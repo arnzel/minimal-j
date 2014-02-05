@@ -120,7 +120,7 @@ public abstract class Editor<T> {
 	protected Editor() {
 	}
 	
-	public IForm<T> startEditor() {
+	public IForm<T> startEditor(EditorContext context) {
 		if (form != null) {
 			throw new IllegalStateException();
 		}

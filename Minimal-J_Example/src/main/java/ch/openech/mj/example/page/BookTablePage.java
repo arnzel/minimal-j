@@ -4,13 +4,11 @@ import static ch.openech.mj.example.model.Book.*;
 
 import java.util.List;
 
-import ch.openech.mj.example.MjExampleApplication;
 import ch.openech.mj.example.model.Book;
 import ch.openech.mj.page.ActionGroup;
 import ch.openech.mj.page.PageContext;
 import ch.openech.mj.page.RefreshablePage;
 import ch.openech.mj.page.TablePage;
-import ch.openech.mj.search.IndexSearch;
 
 
 public class BookTablePage extends TablePage<Book> implements RefreshablePage {
@@ -27,7 +25,7 @@ public class BookTablePage extends TablePage<Book> implements RefreshablePage {
 	};
 	
 	public BookTablePage(PageContext context, String text) {
-		super(context, new IndexSearch<>(MjExampleApplication.persistence().bookIndex), FIELDS, text);
+		super(context, Book.FULLTEXT, FIELDS, text);
 		this.text = text;
 	}
 	

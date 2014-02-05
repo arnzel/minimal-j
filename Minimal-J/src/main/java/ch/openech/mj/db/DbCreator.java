@@ -129,7 +129,7 @@ public class DbCreator {
 	
 	private void appendIndexes(StringBuilder s, AbstractTable<?> table) {
 		Set<String> indexed = new TreeSet<>();
-		for (Index<?> index : table.getIndexes()) {
+		for (DbIndex<?> index : table.getIndexes()) {
 			String column = index.getColumn();
 			if (column != null) {
 				if (indexed.contains(column)) continue;
@@ -181,7 +181,7 @@ public class DbCreator {
 	private void createIndexStatements(List<String> createStatements, AbstractTable<?> table) {
 		// CREATE INDEX OrigIndex ON Flights(orig_airport);
 		Set<String> indexed = new TreeSet<>();
-		for (Index<?> index : table.getIndexes()) {
+		for (DbIndex<?> index : table.getIndexes()) {
 			String column = index.getColumn();
 			if (column != null) {
 				if (indexed.contains(column)) continue;

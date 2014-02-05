@@ -15,8 +15,8 @@ public class IndexSearch<T> implements Search<T> {
 	}
 	
 	@Override
-	public List<Integer> search(String text) {
-		return index.findIds(text);
+	public List<Integer> search(String text, int maxObjects) {
+		return index.search(text, maxObjects);
 	}
 
 	@Override

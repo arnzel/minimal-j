@@ -2,7 +2,6 @@ package ch.openech.mj.example;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
 import ch.openech.mj.application.MjApplication;
 import ch.openech.mj.example.page.BookTablePage;
@@ -23,11 +22,6 @@ public class MjExampleApplication extends MjApplication {
 		return ((MjExampleApplication) getApplication()).persistence;
 	}
 	
-	@Override
-	public ResourceBundle getResourceBundle() {
-		return ResourceBundle.getBundle("ch.openech.mj.example.Application");
-	}
-
 	@Override
 	public List<IAction> getActionsNew(PageContext context) {
 		List<IAction> items = new ArrayList<>();

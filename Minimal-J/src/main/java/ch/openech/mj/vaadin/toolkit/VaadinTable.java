@@ -8,7 +8,7 @@ import org.joda.time.ReadablePartial;
 import ch.openech.mj.model.Keys;
 import ch.openech.mj.model.PropertyInterface;
 import ch.openech.mj.resources.Resources;
-import ch.openech.mj.search.Lookup;
+import ch.openech.mj.toolkit.ClientToolkit.TableDataProvider;
 import ch.openech.mj.toolkit.ITable;
 import ch.openech.mj.util.JodaFormatter;
 import ch.openech.mj.vaadin.PropertyVaadinContainer;
@@ -24,7 +24,6 @@ import com.vaadin.ui.Table;
 public class VaadinTable<T> extends Table implements ITable<T> {
 	private static final long serialVersionUID = 1L;
 
-	private final Lookup<T> lookup;
 	private final List<PropertyInterface> properties = new ArrayList<PropertyInterface>();
 	private final JodaFormatter jodaFormatter = new JodaFormatter();
 	private TableActionListener listener;
@@ -33,8 +32,7 @@ public class VaadinTable<T> extends Table implements ITable<T> {
 	private Action action_enter = new ShortcutAction("Enter", ShortcutAction.KeyCode.DELETE, null);
 
 
-	public VaadinTable(Lookup<T> lookup, Object[] keys) {
-		this.lookup = lookup;
+	public VaadinTable(TableDataProvider<T> dataProvider, Object... keys) {
 		setSelectable(true);
 		setMultiSelect(false);
 		setSizeFull();
@@ -128,7 +126,7 @@ public class VaadinTable<T> extends Table implements ITable<T> {
 	}
 
 	@Override
-	public void setInsertListener(InsertListener listener) {
+	public void setInsertListener(TableActionListener listener) {
 		// TODO Insert Action on Vaadin Table
 	}
 

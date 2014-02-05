@@ -10,7 +10,7 @@ import ch.openech.mj.model.PropertyInterface;
 import ch.openech.mj.util.LoggingRuntimeException;
 
 
-public class ColumnIndexUnqiue<T> extends AbstractIndex<T> {
+public class ColumnIndexUnqiue<T> extends DbIndex<T> {
 
 	protected ColumnIndex<?> innerIndex;
 	
@@ -24,7 +24,7 @@ public class ColumnIndexUnqiue<T> extends AbstractIndex<T> {
 		try {
 			PreparedStatement selectStatement = table.getStatement(connection, selectQuery, false);
 			if (innerIndex != null) {
-				List<Integer> ids = innerIndex.findIds(query);
+				List<Integer> ids = innerIndex.search(query, 0);
 				for (Integer id : ids) {
 					helper.setParameter(selectStatement, 1, id, property);
 					Integer result = executeSelectId(selectStatement);
@@ -45,7 +45,7 @@ public class ColumnIndexUnqiue<T> extends AbstractIndex<T> {
 	
 
 	@Override
-	public List<Integer> findIds(Object query) {
+	public List<Integer> search(Object query, int maxObjects) {
 		return Collections.singletonList(findId(query));
 	}
 	

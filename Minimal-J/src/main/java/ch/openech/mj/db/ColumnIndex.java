@@ -11,7 +11,7 @@ import ch.openech.mj.model.PropertyInterface;
 import ch.openech.mj.util.LoggingRuntimeException;
 
 
-public class ColumnIndex<T> extends AbstractIndex<T> {
+public class ColumnIndex<T> extends DbIndex<T> {
 
 	private final ColumnIndex<?> innerIndex;
 	
@@ -30,11 +30,12 @@ public class ColumnIndex<T> extends AbstractIndex<T> {
 		return result;
 	}
 	
-	public List<Integer> findIds(Object query) {
+	@Override
+	public List<Integer> search(Object query, int maxObjects) {
 		Connection connection = dbPersistence.getConnection();
 		try {
 			if (innerIndex != null) {
-				List<Integer> queryIds = innerIndex.findIds(query);
+				List<Integer> queryIds = innerIndex.search(query, maxObjects);
 				return findIds(queryIds);
 			}
 			PreparedStatement selectStatement = table.getStatement(connection, selectQuery, false);
@@ -48,7 +49,7 @@ public class ColumnIndex<T> extends AbstractIndex<T> {
 	}
 
 	public List<T> findObjects(Object query) {
-		List<Integer> ids = findIds(query);
+		List<Integer> ids = search(query, 0);
 		List<T> result = new ArrayList<>(ids.size());
 		for (Integer id : ids) {
 			result.add(lookup(id));

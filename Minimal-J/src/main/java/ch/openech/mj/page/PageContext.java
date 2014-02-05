@@ -38,5 +38,7 @@ public interface PageContext extends IComponent {
 	 * @return ApplicationContext
 	 */
 	ApplicationContext getApplicationContext();
+
+	<T> T getService(Class<T> clazz);
 	
 }

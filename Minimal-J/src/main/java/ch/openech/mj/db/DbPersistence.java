@@ -1,5 +1,6 @@
 package ch.openech.mj.db;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +20,12 @@ import javax.sql.DataSource;
 import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.mariadb.jdbc.MySQLDataSource;
 
+import ch.openech.mj.model.HistorizedModelClass;
+import ch.openech.mj.model.Model;
+import ch.openech.mj.model.ModelClass;
 import ch.openech.mj.model.test.ModelTest;
+import ch.openech.mj.util.FieldUtils;
+import ch.openech.mj.util.GenericUtils;
 import ch.openech.mj.util.LoggingRuntimeException;
 import ch.openech.mj.util.StringUtils;
 
@@ -37,8 +43,6 @@ public class DbPersistence {
 	private static final Logger logger = Logger.getLogger(DbPersistence.class.getName());
 	public static final boolean CREATE_TABLES = true;
 	
-	private Boolean initialized = false;
-	
 	private final boolean isDerbyDb;
 	private final boolean isMySqlDb; 
 	private final boolean createTablesOnInitialize;
@@ -46,17 +50,19 @@ public class DbPersistence {
 	private final Map<Class<?>, AbstractTable<?>> tables = new LinkedHashMap<Class<?>, AbstractTable<?>>();
 	private final Set<Class<?>> immutables = new HashSet<>();
 	
+	private final Model model;
 	private final DataSource dataSource;
 	
 	private Connection autoCommitConnection;
 	private BlockingDeque<Connection> connectionDeque = new LinkedBlockingDeque<>();
 	private ThreadLocal<Connection> threadLocalTransactionConnection = new ThreadLocal<>();
 
-	public DbPersistence(DataSource dataSource) {
-		this(dataSource, createTablesOnInitialize(dataSource));
+	public DbPersistence(Model model, DataSource dataSource) {
+		this(model, dataSource, createTablesOnInitialize(dataSource));
 	}
 
-	public DbPersistence(DataSource dataSource, boolean createTablesOnInitialize) {
+	public DbPersistence(Model model, DataSource dataSource, boolean createTablesOnInitialize) {
+		this.model = model;
 		this.dataSource = dataSource;
 		Connection connection = getAutoCommitConnection();
 		try {
@@ -67,6 +73,13 @@ public class DbPersistence {
 			this.createTablesOnInitialize = createTablesOnInitialize;
 		} catch (SQLException x) {
 			throw new LoggingRuntimeException(x, logger, "Could not determine product name of database");
+		}
+	}
+	
+	private void initialize() {
+		testModel();
+		if (createTablesOnInitialize) {
+			createTables();
 		}
 	}
 	
@@ -218,26 +231,11 @@ public class DbPersistence {
 	}
 	
 	Connection getConnection() {
-		if (!initialized) {
-			initialize();
-		}
 		Connection connection = threadLocalTransactionConnection.get();
 		if (connection != null) {
 			return connection;
 		} else {
 			return getAutoCommitConnection();
-		}
-	}
-	
-	private void initialize() {
-		synchronized (initialized) {
-			if (!initialized) {
-				initialized = true;
-				testModel();
-				if (createTablesOnInitialize) {
-					createTables();
-				}
-			}
 		}
 	}
 	
@@ -292,10 +290,43 @@ public class DbPersistence {
 	
 	//
 
-	private void add(AbstractTable<?> table) {
-		if (initialized) {
-			throw new IllegalStateException("Not allowed to add Table after connecting");
+	private void readModel(Model model) {
+		for (Field field : model.getClass().getFields()) {
+			if (FieldUtils.isStatic(field)) continue;
+			try {
+				Object value = field.get(model);
+				if (value instanceof HistorizedModelClass) {
+					HistorizedModelClass<?> historizedModelClass = (HistorizedModelClass<?>) value;
+					addImmutableClass(historizedModelClass.getIdentificationClass());
+					addHistorizedClass(historizedModelClass.getClazz());
+				} else if (value instanceof ModelClass) {
+					ModelClass<?> modelClass = (ModelClass<?>) value;
+					addClass(modelClass.getClazz());
+				}
+			} catch (IllegalAccessException x) {
+				logger.log(Level.SEVERE, "ReadModel failed", x);
+				throw new RuntimeException("ReadModel failed");
+			}
 		}
+		for (Field field : model.getClass().getFields()) {
+			if (FieldUtils.isStatic(field)) continue;
+			try {
+				Object value = field.get(model);
+				if (value instanceof Index) {
+					ch.openech.mj.model.Index<?> index = (ch.openech.mj.model.Index<?>) value;
+					Class<?> indexedClass = GenericUtils.getGenericClass(field);
+					AbstractTable<?> table = getTable(indexedClass);
+					table.createIndex(index);
+				}
+			} catch (IllegalAccessException x) {
+				logger.log(Level.SEVERE, "ReadModel failed", x);
+				throw new RuntimeException("ReadModel failed");
+			}
+		}
+
+	}
+	
+	public void add(AbstractTable<?> table) {
 		tables.put(table.getClazz(), table);
 	}
 	
@@ -309,10 +340,6 @@ public class DbPersistence {
 		HistorizedTable<U> table = new HistorizedTable<U>(this, clazz);
 		add(table);
 		return table;
-	}
-	
-	public <U> ImmutableTable<U> addIdentificationClass(Class<U> clazz) {
-		return addImmutableClass(clazz);
 	}
 	
 	/**
@@ -366,5 +393,5 @@ public class DbPersistence {
 			throw new IllegalArgumentException("The persistent classes don't apply to the given rules");
 		}
 	}
-	
+
 }

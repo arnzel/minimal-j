@@ -2,8 +2,7 @@ package ch.openech.mj.toolkit;
 
 import java.io.InputStream;
 
-import ch.openech.mj.search.Lookup;
-import ch.openech.mj.search.Search;
+import ch.openech.mj.model.Index;
 import ch.openech.mj.toolkit.ITable.TableActionListener;
 
 /**
@@ -57,8 +56,28 @@ public abstract class ClientToolkit {
 	
 	public abstract CheckBox createCheckBox(InputComponentListener changeListener, String text);
 
-	public abstract <T> ITable<T> createTable(Lookup<T> lookup, Object[] fields);
-
+	public interface TableDataProvider<T> {
+		
+		public void setConsumer(TableDataConsumer<T> consumer);
+		
+		public int getRowCount();
+		
+		public void requestRows(int firstRow, int size);
+		
+		// TODO maybe add sorting
+		
+	}
+	
+	public interface TableDataConsumer<T> {
+		
+		public void reset();
+		
+		public void consume(int startRow, int size, T[] rows);
+		
+	}
+	
+	public abstract <T> ITable<T> createTable(TableDataProvider<T> dataProvider, Object... keys);
+	
 	public abstract IComponent createLink(String text, String address);
 	
 	public interface InputComponentListener {
@@ -79,7 +98,7 @@ public abstract class ClientToolkit {
 
 	public abstract IComponent createFormAlignLayout(IComponent content);
 
-	public abstract <T> IDialog createSearchDialog(IComponent parent, Search<T> search, Object[] keys, TableActionListener listener);
+	public abstract void showSearchDialog(IComponent parent, Index index, Object[] keys, TableActionListener listener);
 
 	// Dialogs / Notification
 
@@ -101,7 +120,7 @@ public abstract class ClientToolkit {
 		
 		void close(Object result);
 	}
-
+	
 	// Up / Dowload
 	
 	public abstract void export(IComponent parent, String buttonText, ExportHandler exportHandler);

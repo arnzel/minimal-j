@@ -11,22 +11,24 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import ch.openech.mj.search.Search;
+import ch.openech.mj.model.Index;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.ITable.TableActionListener;
 
-public class SwingSearchPanel<T> extends JPanel implements IComponent {
+public class SwingSearchPanel extends JPanel implements IComponent {
 	private static final long serialVersionUID = 1L;
 	private final JTextField text;
 	private final JButton searchButton;
-	private final SwingTable<T> table;
+	private final SwingTable.IndexTableModel<?> tableModel;
+	private final SwingTable<?> table;
 	
-	public SwingSearchPanel(final Search<T> search, Object[] keys, TableActionListener listener) {
+	public SwingSearchPanel(final Index index, Object[] keys, TableActionListener listener) {
 		super(new BorderLayout());
 		
 		text = new JTextField();
 		searchButton = new JButton("Search");
-		table = new SwingTable<T>(search, keys);
+		tableModel = new SwingTable.IndexTableModel<>(index, keys);
+		table = new SwingTable<?>(tableModel, keys);
 
 		JPanel northPanel = new JPanel(new BorderLayout());
 		northPanel.add(text, BorderLayout.CENTER);
@@ -45,7 +47,7 @@ public class SwingSearchPanel<T> extends JPanel implements IComponent {
 		searchButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				table.setIds(search.search(text.getText()));
+				tableModel.search(text.getText(), 100); // TODO max result in SwingSearchPanel
 			}
 		});
 		

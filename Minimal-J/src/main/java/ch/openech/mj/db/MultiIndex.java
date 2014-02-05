@@ -24,10 +24,11 @@ public class MultiIndex<T> implements Index<T> {
 		return result;
 	}
 	
-	public List<Integer> findIds(Object query) {
+	@Override
+	public List<Integer> search(Object query, int maxObjects) {
 		List<Integer> result = new ArrayList<>(50);
 		for (ColumnIndex<T> index : indexes) {
-			List<Integer> ids = index.findIds(query);
+			List<Integer> ids = index.search(query, 0);
 			for (Integer id : ids) {
 				if (!result.contains(id)) {
 					result.add(id);
@@ -42,9 +43,4 @@ public class MultiIndex<T> implements Index<T> {
 		return indexes[0].lookup(id);
 	}
 	
-	@Override
-	public String getColumn() {
-		return null;
-	}
-
 }

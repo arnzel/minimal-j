@@ -1,16 +1,19 @@
-package ch.openech.mj.example;
+package ch.openech.mj.example.model;
 
 import ch.openech.mj.db.DbPersistence;
 import ch.openech.mj.db.ImmutableTable;
 import ch.openech.mj.db.Table;
-import ch.openech.mj.example.model.Book;
-import ch.openech.mj.example.model.BookIdentification;
-import ch.openech.mj.example.model.Customer;
-import ch.openech.mj.example.model.CustomerIdentification;
-import ch.openech.mj.example.model.Lend;
+import ch.openech.mj.model.Index;
+import ch.openech.mj.model.Model;
 
-public class ExamplePersistence extends DbPersistence {
+public class ExampleModel implements Model {
 
+	public static final Index FULLTEXT = Index.fulltext(BOOK.bookIdentification.title, BOOK.bookIdentification.author);
+
+	
+	public static final Index BY_BOOK = Index.by(LEND.book);
+	public static final Index BY_CUSTOMER = Index.by(LEND.customer);
+	
 	public final ImmutableTable<BookIdentification> bookIdentification;
 	public final Table<Book> book;
 	
@@ -19,7 +22,7 @@ public class ExamplePersistence extends DbPersistence {
 	
 	public final Table<Lend> lend;
 	
-	public ExamplePersistence() {
+	public ExampleModel() {
 		super(DbPersistence.embeddedDataSource());
 		
 		bookIdentification = addImmutableClass(BookIdentification.class);

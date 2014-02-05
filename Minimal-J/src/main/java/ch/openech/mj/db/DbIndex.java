@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 import ch.openech.mj.model.PropertyInterface;
 
-public abstract class AbstractIndex<T> implements Index<T> {
+public abstract class DbIndex<T> implements Index<T> {
 	public static final Logger sqlLogger = Logger.getLogger("SQL");
 
 	protected final DbPersistence dbPersistence;
@@ -18,7 +18,7 @@ public abstract class AbstractIndex<T> implements Index<T> {
 	
 	protected final String selectQuery;
 
-	protected AbstractIndex(DbPersistence dbPersistence, AbstractTable<T> table, PropertyInterface property, String column) {
+	protected DbIndex(DbPersistence dbPersistence, AbstractTable<T> table, PropertyInterface property, String column) {
 		this.dbPersistence = dbPersistence;
 		this.helper = new DbPersistenceHelper(dbPersistence);
 		this.table = table;
@@ -41,7 +41,6 @@ public abstract class AbstractIndex<T> implements Index<T> {
 		}
 	}
 
-	@Override
 	public String getColumn() {
 		return column;
 	}

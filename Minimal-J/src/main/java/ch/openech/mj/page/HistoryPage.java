@@ -7,7 +7,6 @@ import org.joda.time.LocalDateTime;
 
 import ch.openech.mj.model.Keys;
 import ch.openech.mj.model.annotation.Size;
-import ch.openech.mj.search.ListLookup;
 import ch.openech.mj.toolkit.ClientToolkit;
 import ch.openech.mj.toolkit.IComponent;
 import ch.openech.mj.toolkit.ITable;
@@ -15,14 +14,12 @@ import ch.openech.mj.toolkit.ITable.TableActionListener;
 
 public abstract class HistoryPage<T> extends AbstractPage implements RefreshablePage {
 
-	private List<HistoryVersion<T>> versions;
+	private List<HistoryVersion<T>> versions = new ArrayList<>();
 	private ITable<HistoryVersion<T>> table;
-	private final ListLookup<HistoryVersion<T>> lookup;
 	
 	public HistoryPage(PageContext pageContext) {
 		super(pageContext);
-		lookup = new ListLookup<>();
-		table = ClientToolkit.getToolkit().createTable(lookup, new Object[]{HistoryVersion.HISTORY_VERSION.time, HistoryVersion.HISTORY_VERSION.description});
+		table = ClientToolkit.getToolkit().createTable(versions, new Object[]{HistoryVersion.HISTORY_VERSION.time, HistoryVersion.HISTORY_VERSION.description});
 		table.setClickListener(new TableActionListener() {
 			@Override
 			public void action(int selectedId, List<Integer> selectedIds) {
@@ -59,9 +56,9 @@ public abstract class HistoryPage<T> extends AbstractPage implements Refreshable
 
 	@Override
 	public void refresh() {
-		versions = loadVersions();
-		lookup.setList(versions);
-		table.setIds(lookup.getIds());
+		versions.clear();
+		versions.addAll(loadVersions());
+		table.refresh();
 	}
 
 	public static class HistoryVersion<T> {

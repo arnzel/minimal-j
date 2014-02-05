@@ -48,8 +48,7 @@ public abstract class AbstractTable<T> {
 	
 	protected final String name;
 
-	protected final Map<Object, Index<T>> indexByKey = new HashMap<>();
-	protected final List<Index<T>> indexes = new ArrayList<>();
+	protected final List<DbIndex<T>> indexes = new ArrayList<>();
 	
 	protected final Map<Connection, Map<String, PreparedStatement>> statements = new HashMap<>();
 
@@ -135,11 +134,7 @@ public abstract class AbstractTable<T> {
 		return lists;
 	}
 	
-	public Index<T> getIndex(Object key) {
-		return indexByKey.get(key);
-	}
-
-	protected Collection<Index<T>> getIndexes() {
+	protected Collection<DbIndex<T>> getIndexes() {
 		return indexes;
 	}
 	
@@ -443,7 +438,6 @@ public abstract class AbstractTable<T> {
 			}
 		}
 		MultiIndex<T> index = new MultiIndex<T>(indexes);
-		indexByKey.put(keys, index);
 		return index;
 	}
 	
@@ -451,7 +445,6 @@ public abstract class AbstractTable<T> {
 		PropertyInterface property = Keys.getProperty(key);
 		String fieldPath = property.getFieldPath();
 		ColumnIndex<T> index = createFulltextIndex(property, fieldPath);
-		indexByKey.put(key, index);
 		return index;
 	}
 	
@@ -479,7 +472,6 @@ public abstract class AbstractTable<T> {
 		PropertyInterface property = Keys.getProperty(key);
 		String fieldPath = property.getFieldPath();
 		ColumnIndex<T> index = createIndex(property, fieldPath);
-		indexByKey.put(key, index);
 		return index;
 	}
 	
@@ -504,7 +496,6 @@ public abstract class AbstractTable<T> {
 		PropertyInterface property = Keys.getProperty(key);
 		String fieldPath = property.getFieldPath();
 		ColumnIndexUnqiue<T> index = createIndexUnique(property, fieldPath);
-		indexByKey.put(key, index);
 		return index;
 	}
 	

@@ -3,8 +3,7 @@ package ch.openech.mj.toolkit;
 import java.io.InputStream;
 import java.util.List;
 
-import ch.openech.mj.search.Lookup;
-import ch.openech.mj.search.Search;
+import ch.openech.mj.model.Index;
 import ch.openech.mj.toolkit.ITable.TableActionListener;
 
 public class JUnitClientToolkit extends ClientToolkit {
@@ -108,12 +107,17 @@ public class JUnitClientToolkit extends ClientToolkit {
 	}
 
 	@Override
-	public <T> ITable<T> createTable(Lookup<T> lookup, Object[] fields) {
+	public <T> ITable<T> createTable(TableDataProvider<T> dataProvider, Object... keys) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
+	public void showSearchDialog(IComponent parent, Index index, Object[] keys, TableActionListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public IComponent createLink(String text, String address) {
 		// TODO Auto-generated method stub
 		return null;
@@ -207,10 +211,5 @@ public class JUnitClientToolkit extends ClientToolkit {
 		return null;
 	}
 
-	@Override
-	public <T> IDialog createSearchDialog(IComponent parent, Search<T> search, Object[] keys, TableActionListener listener) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }
