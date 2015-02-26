@@ -1,262 +1,315 @@
 package org.minimalj.frontend.vaadin.toolkit;
 
-import java.text.NumberFormat;
-import java.util.Locale;
+import java.io.Serializable;
 
-import javax.swing.UIManager;
-
-import org.minimalj.frontend.toolkit.ClientToolkit.ConfirmDialogType;
-import org.minimalj.frontend.toolkit.ClientToolkit.DialogListener;
-import org.minimalj.frontend.toolkit.ClientToolkit.DialogListener.DialogResult;
-
-import com.vaadin.event.Action;
-import com.vaadin.event.ShortcutAction;
-import com.vaadin.event.ShortcutAction.KeyCode;
-import com.vaadin.terminal.gwt.server.WebApplicationContext;
-import com.vaadin.ui.Alignment;
+import com.vaadin.server.JsonPaintTarget;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.NativeButton;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.themes.Reindeer;
 
 /**
- * Based on https://vaadin.com/directory#addon/confirmdialog
+ * Based on https://github.com/samie/Vaadin-ConfirmDialog/tree/vaadin7
  *
  */
 public class VaadinConfirmDialog extends Window {
-    private static final long serialVersionUID = 1L;
 
-	private static final double MIN_WIDTH = 20d;
-    private static final double MAX_WIDTH = 40d;
-    private static final double MIN_HEIGHT = 1d;
-    private static final double MAX_HEIGHT = 30d;
-    private static final double BUTTON_HEIGHT = 2.5;
+    private static final long serialVersionUID = -2363125714643244070L;
 
-	private final DialogListener listener;
-	private Button buttonYes, buttonNo, buttonOk, buttonCancel;
-	private int focusIndex;
-	
-	public VaadinConfirmDialog(Window window, String message, String title, ConfirmDialogType type, DialogListener listener) {
-		this.listener = listener;
-		
-   	    WebApplicationContext context = (WebApplicationContext) window.getApplication().getContext();
-        Locale locale = Locale.getDefault(); // TODO: context.getBrowser().getLocale(); does not compile with jdk, but with eclipse
-		
-		setCaption(title);
-		
-        addListener(new Window.CloseListener() {
+    public interface Factory extends Serializable {
+    	VaadinConfirmDialog create(String windowCaption, String message,
+                String okTitle, String cancelTitle, String notOKCaption);
+    }
+
+    /* Test IDs for elements */
+    public static final String DIALOG_ID = "confirmdialog-window";
+    public static final String MESSAGE_ID = "confirmdialog-message";
+    public static final String OK_ID = "confirmdialog-ok-button";
+    public static final String NOT_OK_ID = "confirmdialog-not-ok-button";
+    public static final String CANCEL_ID = "confirmdialog-cancel-button";
+
+    public enum ContentMode {
+        TEXT_WITH_NEWLINES, TEXT, PREFORMATTED, HTML
+    };
+
+    /**
+     * Listener for dialog close events. Implement and register an instance of
+     * this interface to dialog to receive close events.
+     *
+     * @author Sami Ekblad
+     *
+     */
+    public interface Listener extends Serializable {
+        void onClose(VaadinConfirmDialog dialog);
+    }
+
+    /**
+     * Default dialog factory.
+     *
+     */
+    private static VaadinConfirmDialog.Factory factoryInstance;
+
+    /**
+     * Get the VaadinConfirmDialog.Factory used to create and configure the dialog.
+     *
+     * By default the {@link DefaultVaadinConfirmDialogFactory} is used.
+     *
+     * @return the currently used VaadinConfirmDialog.Factory
+     */
+    public static VaadinConfirmDialog.Factory getFactory() {
+        if (factoryInstance == null) {
+            factoryInstance = new DefaultConfirmDialogFactory();
+        }
+        return factoryInstance;
+    }
+
+    /**
+     * Set the VaadinConfirmDialog.Factory used to create and configure the dialog.
+     *
+     * By default the {@link DefaultVaadinConfirmDialogFactory} is used.
+     * 
+     * @param newFactory the VaadinConfirmDialog factory to be used
+     *
+     */
+    public static void setFactory(final VaadinConfirmDialog.Factory newFactory) {
+        factoryInstance = newFactory;
+    }
+
+    /**
+     * Show a modal VaadinConfirmDialog in a window.
+     *
+     * @param ui the UI in which the dialog is to be show
+     * @param listener the listener to be notified
+     * @return the VaadinConfirmDialog instance created
+     */
+    public static VaadinConfirmDialog show(final UI ui, final Listener listener) {
+        return show(ui, null, null, null, null, listener);
+    }
+
+    /**
+     * Show a modal VaadinConfirmDialog in a window.
+     *
+     * @param ui the UI in which the dialog is to be show
+     * @param message the message shown in the dialog
+     * @param listener the listener to be notified
+     * @return the VaadinConfirmDialog instance created
+     */
+    public static VaadinConfirmDialog show(final UI ui, final String message,
+            final Listener listener) {
+        return show(ui, null, message, null, null, listener);
+    }
+
+    /**
+     * Show a modal three way (eg. yes/no/cancel) VaadinConfirmDialog in a window.
+     * 
+     * @param ui
+     *            UI
+     * @param windowCaption
+     *            Caption for the confirmation dialog window.
+     * @param message
+     *            Message to display as window content.
+     * @param okCaption
+     *            Caption for the ok button.
+     * @param cancelCaption
+     *            Caption for cancel button.
+     * @param notOKCaption
+     *            Caption for notOK button.
+     * @param listener
+     *            Listener for dialog result.
+     * @return the VaadinConfirmDialog instance created
+     */
+    public static VaadinConfirmDialog show(final UI ui,
+            final String windowCaption, final String message,
+            final String okCaption, final String cancelCaption,
+            final String notOKCaption, final Listener listener) {
+        VaadinConfirmDialog d = getFactory().create(windowCaption, message,
+                okCaption, cancelCaption, notOKCaption);
+        d.show(ui, listener, true);
+        return d;
+    }
+
+    /**
+     * Show a modal VaadinConfirmDialog in a window.
+     *
+     * @param ui
+     *            Main level UI.
+     * @param windowCaption
+     *            Caption for the confirmation dialog window.
+     * @param message
+     *            Message to display as window content.
+     * @param okCaption
+     *            Caption for the ok button.
+     * @param cancelCaption
+     *            Caption for cancel button.
+     * @param listener
+     *            Listener for dialog result.
+     * @return the VaadinConfirmDialog that was instantiated
+     */
+    public static VaadinConfirmDialog show(final UI ui,
+            final String windowCaption, final String message,
+            final String okCaption, final String cancelCaption,
+            final Listener listener) {
+        VaadinConfirmDialog d = getFactory().create(windowCaption, message,
+                okCaption, cancelCaption, null);
+        d.show(ui, listener, true);
+        return d;
+    }
+
+    /**
+     * Shows a modal VaadinConfirmDialog in given window and executes Runnable if OK
+     * is chosen.
+     *
+     * @param ui
+     *            Main level UI.
+     * @param windowCaption
+     *            Caption for the confirmation dialog window.
+     * @param message
+     *            Message to display as window content.
+     * @param okCaption
+     *            Caption for the ok button.
+     * @param cancelCaption
+     *            Caption for cancel button.
+     * @param r
+     *            Runnable to be run if confirmed
+     * @return the VaadinConfirmDialog that was instantiated
+     */
+    public static VaadinConfirmDialog show(final UI ui,
+            final String windowCaption, final String message,
+            final String okCaption, final String cancelCaption, final Runnable r) {
+        VaadinConfirmDialog d = getFactory().create(windowCaption, message,
+                okCaption, cancelCaption, null);
+        d.show(ui, new Listener() {
             private static final long serialVersionUID = 1L;
 
-			@Override
-			public void windowClose(CloseEvent ce) {
-                if (isEnabled()) {
-                    setEnabled(false); // avoid double processing
-                    VaadinConfirmDialog.this.listener.close(DialogResult.CANCEL);
+            public void onClose(VaadinConfirmDialog dialog) {
+                if (dialog.isConfirmed()) {
+                    r.run();
                 }
             }
-        });
-
-        // Create content
-        VerticalLayout c = (VerticalLayout) getContent();
-        c.setSizeFull();
-        c.setSpacing(true);
-
-        // Panel for scrolling lengthty messages.
-        Panel scroll = new Panel(new VerticalLayout());
-        scroll.setScrollable(true);
-        c.addComponent(scroll);
-        scroll.setWidth("100%");
-        scroll.setHeight("100%");
-        scroll.setStyleName(Reindeer.PANEL_LIGHT);
-        c.setExpandRatio(scroll, 1f);
-
-        // Always HTML, but escape
-        Label text = new Label("", Label.CONTENT_RAW);
-        scroll.addComponent(text);
-        text.setValue(message);
-        
-        final HorizontalLayout buttons = new HorizontalLayout();
-        c.addComponent(buttons);
-        buttons.setSpacing(true);
-
-        buttons.setHeight(format(BUTTON_HEIGHT) + "em");
-        buttons.setWidth("100%");
-        Label spacer = new Label("");
-        buttons.addComponent(spacer);
-        spacer.setWidth("100%");
-        buttons.setExpandRatio(spacer, 1f);
-
-        if (type == ConfirmDialogType.YES_NO_CANCEL || type == ConfirmDialogType.YES_NO) {
-        	buttonYes = new NativeButton(UIManager.getString("OptionPane.yesButtonText", locale));
-        	buttonYes.setData(true);
-        	buttonYes.setClickShortcut(KeyCode.ENTER, null);
-            buttons.addComponent(buttonYes);
-            buttons.setComponentAlignment(buttonYes, Alignment.MIDDLE_RIGHT);
-            buttonYes.addListener(new ConfirmDialogButtonListener(DialogResult.YES));
-            
-            buttonNo = new NativeButton(UIManager.getString("OptionPane.noButtonText", locale));
-        	buttonNo.setData(true);
-        	buttonNo.setClickShortcut(KeyCode.ESCAPE, null);
-            buttons.addComponent(buttonNo);
-            buttons.setComponentAlignment(buttonNo, Alignment.MIDDLE_RIGHT);
-            buttonNo.addListener(new ConfirmDialogButtonListener(DialogResult.NO));
-        }
-        
-        /* not used at the moment 
-        if (type == ConfirmDialogType.OK_CANCEL) {
-            buttonOk = new NativeButton(UIManager.getString("OptionPane.okButtonText", locale));
-            buttonOk.setData(true);
-            buttonOk.setClickShortcut(KeyCode.ENTER, null);
-            buttons.addComponent(buttonOk);
-            buttons.setComponentAlignment(buttonOk, Alignment.MIDDLE_RIGHT);
-            buttonOk.addListener(new ConfirmDialogButtonListener(JOptionPane.OK));
-        }
-        */
-        
-        if (type == ConfirmDialogType.YES_NO_CANCEL /* || type == ConfirmDialogType.OK_CANCEL */) {
-            buttonCancel = new NativeButton(UIManager.getString("OptionPane.cancelButtonText", locale));
-            buttonCancel.setData(false);
-            buttonCancel.setClickShortcut(KeyCode.ESCAPE, null);
-            buttons.addComponent(buttonCancel);
-            buttons.setComponentAlignment(buttonCancel, Alignment.MIDDLE_RIGHT);
-            buttonCancel.addListener(new ConfirmDialogButtonListener(DialogResult.CANCEL));
-        }
-        
-        // Keyboard support
-        final int buttonCount = buttons.getComponentCount() - 1;
-        Action.Handler ah = new Action.Handler() {
-			private static final long serialVersionUID = 1L;
-			private final ShortcutAction LEFT = new ShortcutAction("left", ShortcutAction.KeyCode.ARROW_LEFT, null);
-			private final ShortcutAction RIGHT = new ShortcutAction("right", ShortcutAction.KeyCode.ARROW_RIGHT, null);
-			private final ShortcutAction NEXT = new ShortcutAction("next", ShortcutAction.KeyCode.TAB, null);
-			private final ShortcutAction PREV = new ShortcutAction("prev", ShortcutAction.KeyCode.TAB,
-					new int[] { ShortcutAction.ModifierKey.SHIFT });
-
-			private final ShortcutAction[] acs = new ShortcutAction[] { LEFT, RIGHT, NEXT, PREV };
-
-            @Override
-			public void handleAction(Action action, Object sender, Object target) {
-            	if (action == RIGHT || action == NEXT) {
-            		focusIndex++;
-            	} else {
-            		focusIndex--;
-            		if (focusIndex < 0) {
-            			focusIndex = buttonCount - 1;
-            		}
-            	}
-            	focusIndex = focusIndex % buttonCount;
-            	((Button) buttons.getComponent(focusIndex + 1)).focus();
-            }
-
-            @Override
-			public Action[] getActions(Object target, Object sender) {
-                return acs;
-            }
-        };
-        addActionHandler(ah);
-        
-        
-        // Approximate the size of the dialog
-        double[] dim = getDialogDimensions(message);
-        setWidth(format(dim[0]) + "em");
-        setHeight(format(dim[1]) + "em");
-        setResizable(false);
-        
-        setModal(true);
-        center();
-        window.addWindow(this);
-        
-        focusIndex = buttonCount - 1;
-        ((Button) buttons.getComponent(focusIndex + 1)).focus();
-	}
-
-	private class ConfirmDialogButtonListener implements ClickListener {
-		private static final long serialVersionUID = 1L;
-		private DialogResult result;
-
-		public ConfirmDialogButtonListener(DialogResult result) {
-			this.result = result;
-		}
-		
-		@Override
-		public void buttonClick(ClickEvent event) {
-			VaadinClientToolkit.setWindow(event.getComponent().getWindow());
-			setVisible(false);
-			VaadinConfirmDialog.this.detach(); // mysterious
-			listener.close(result);
-			VaadinClientToolkit.setWindow(null);
-		}
-	}
-	
-    /**
-     * Approximates the dialog dimensions based on its message length.
-     *
-     * @param message
-     *            Message string
-     * @return
-     */
-	private double[] getDialogDimensions(String message) {
-		// Based on Reindeer style:
-		double chrW = 0.5d;
-		double chrH = 1.5d;
-		double length = chrW * message.length();
-		double rows = Math.ceil(length / MAX_WIDTH);
-
-		// Estimate extra lines
-		rows += count("\n", message);
-
-		// Obey maximum size
-		double width = Math.min(MAX_WIDTH, length);
-		double height = Math.ceil(Math.min(MAX_HEIGHT, rows * chrH));
-
-		// Obey the minimum size
-		width = Math.max(width, MIN_WIDTH);
-		height = Math.max(height, MIN_HEIGHT);
-
-		// Based on Reindeer style:
-		double btnHeight = 2.5d;
-		double vmargin = 8d;
-		double hmargin = 2d;
-
-		double[] res = new double[] { width + hmargin, height + btnHeight + vmargin };
-		return res;
-	}
-
-	/**
-	 * Count the number of needles within a haystack.
-	 * 
-	 * @param needle
-	 *            The string to search for.
-	 * @param haystack
-	 *            The string to process.
-	 * @return
-	 */
-	private static int count(final String needle, final String haystack) {
-		int count = 0;
-		int pos = -1;
-		while ((pos = haystack.indexOf(needle, pos + 1)) >= 0) {
-			count++;
-		}
-		return count;
-	}
-    
-    /**
-     * Format a double single fraction digit.
-     *
-     * @param n
-     * @return
-     */
-    private String format(double n) {
-        NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
-        nf.setMaximumFractionDigits(1);
-        nf.setGroupingUsed(false);
-        return nf.format(n);
+        }, true);
+        return d;
     }
-    
+
+    private Listener confirmListener = null;
+    private Boolean isConfirmed = null;
+    private Label messageLabel = null;
+    private Button okBtn = null;
+    private Button cancelBtn = null;
+    private String originalMessageText;
+    private ContentMode msgContentMode = ContentMode.TEXT_WITH_NEWLINES;
+
+    /**
+     * Show confirm dialog.
+     *
+     * @param ui the UI in which the dialog should be shown
+     * @param listener the listener to be notified
+     * @param modal true if the dialog should be modal
+     */
+    public final void show(final UI ui, final Listener listener,
+            final boolean modal) {
+        confirmListener = listener;
+        center();
+        setModal(modal);
+        ui.addWindow(this);
+    }
+
+    /**
+     * Did the user confirm the dialog.
+     *
+     * @return true if user confirmed
+     */
+    public final boolean isConfirmed() {
+        return isConfirmed != null && isConfirmed;
+    }
+
+    /**
+     * Did the user cancel the dialog.
+     * 
+     * @return true if the dialog was canceled
+     */
+    public final boolean isCanceled() {
+        return isConfirmed == null;
+    }
+
+    public final Listener getListener() {
+        return confirmListener;
+    }
+
+    protected final void setOkButton(final Button okButton) {
+        okBtn = okButton;
+    }
+
+    public final Button getOkButton() {
+        return okBtn;
+    }
+
+    protected final void setCancelButton(final Button cancelButton) {
+        cancelBtn = cancelButton;
+    }
+
+    public final Button getCancelButton() {
+        return cancelBtn;
+    }
+
+    protected final void setMessageLabel(final Label message) {
+        messageLabel = message;
+    }
+
+    public final void setMessage(final String message) {
+        originalMessageText = message;
+        messageLabel
+                .setValue(ContentMode.TEXT_WITH_NEWLINES == msgContentMode ? formatDialogMessage(message)
+                        : message);
+    }
+
+    public final String getMessage() {
+        return originalMessageText;
+    }
+
+    public final ContentMode getContentMode() {
+        return msgContentMode;
+    }
+
+    public final void setContentMode(final ContentMode contentMode) {
+        msgContentMode = contentMode;
+        com.vaadin.shared.ui.label.ContentMode labelContentMode = com.vaadin.shared.ui.label.ContentMode.TEXT;
+        switch (contentMode) {
+        case TEXT_WITH_NEWLINES:
+        case TEXT:
+            labelContentMode = com.vaadin.shared.ui.label.ContentMode.TEXT;
+            break;
+        case PREFORMATTED:
+            labelContentMode = com.vaadin.shared.ui.label.ContentMode.PREFORMATTED;
+            break;
+        case HTML:
+            labelContentMode = com.vaadin.shared.ui.label.ContentMode.HTML;
+            break;
+        }
+        messageLabel
+                .setContentMode(labelContentMode);
+        messageLabel
+                .setValue(contentMode == ContentMode.TEXT_WITH_NEWLINES ? formatDialogMessage(originalMessageText)
+                        : originalMessageText);
+    }
+
+    /**
+     * Format the messageLabel by maintaining text only.
+     *
+     * @param text the text to be formatted
+     * @return formatted text
+     */
+    protected final String formatDialogMessage(final String text) {
+        return JsonPaintTarget.escapeXML(text).replaceAll("\n", "<br />");
+    }
+
+    /**
+     * Set the isConfirmed state.
+     *
+     * Note: this should only be called internally by the listeners.
+     *
+     * @param confirmed true if dialog was confirmed
+     */
+    protected final void setConfirmed(final boolean confirmed) {
+        isConfirmed = confirmed;
+    }
 }

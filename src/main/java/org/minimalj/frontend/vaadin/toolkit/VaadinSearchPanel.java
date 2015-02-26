@@ -42,10 +42,8 @@ public class VaadinSearchPanel<T> extends VerticalLayout implements IComponent, 
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void buttonClick(ClickEvent event) {
-				VaadinClientToolkit.setWindow(event.getComponent().getWindow());
 				List<T> objects = search.search((String) text.getValue());
 				table.setObjects(objects);
-				VaadinClientToolkit.setWindow(null);
 			}
 		});
 		

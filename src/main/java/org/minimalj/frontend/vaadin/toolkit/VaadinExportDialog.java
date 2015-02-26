@@ -6,10 +6,11 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import com.vaadin.terminal.StreamResource;
-import com.vaadin.terminal.StreamResource.StreamSource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Link;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 
 public class VaadinExportDialog extends Window {
@@ -18,7 +19,7 @@ public class VaadinExportDialog extends Window {
 	private Link link;
 	private PipedOutputStream pipedOutputStream = new PipedOutputStream();
 	
-	public VaadinExportDialog(Window parentWindow, String title) {
+	public VaadinExportDialog(String title) {
 		super(title);
 		
 		try {
@@ -34,7 +35,7 @@ public class VaadinExportDialog extends Window {
                     return pipedInputStream;
                 }
             };
-            StreamResource sr = new StreamResource(ss, "export.xml", parentWindow.getApplication());
+            StreamResource sr = new StreamResource(ss, "export.xml");
 			sr.setMIMEType("application/octet-stream");
 			sr.setCacheTime(0);
 			link = new Link("Link to Download", sr);
@@ -44,7 +45,7 @@ public class VaadinExportDialog extends Window {
 			setContent(horizontalLayout);
 			
 			setModal(true);
-			parentWindow.addWindow(this);
+			UI.getCurrent().addWindow(this);
 		} catch (IOException x) {
         	x.printStackTrace();
         }

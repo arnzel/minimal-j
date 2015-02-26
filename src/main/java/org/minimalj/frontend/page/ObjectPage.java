@@ -5,8 +5,8 @@ import org.minimalj.frontend.toolkit.ClientToolkit.IContent;
 
 public abstract class ObjectPage<T> extends AbstractPage {
 
-	private Form<T> form;
-	private T object;
+	private transient Form<T> form;
+	private transient T object;
 	
 	public ObjectPage() {
 	}

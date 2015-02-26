@@ -15,7 +15,6 @@ import org.minimalj.frontend.page.EmptyPage;
 import org.minimalj.frontend.page.Page;
 import org.minimalj.frontend.swing.SwingFrontend;
 import org.minimalj.frontend.toolkit.IAction;
-import org.minimalj.frontend.vaadin.VaadinFrontend;
 import org.minimalj.util.StringUtils;
 import org.minimalj.util.resources.Resources;
 

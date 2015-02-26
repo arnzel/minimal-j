@@ -11,11 +11,11 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Notes</servlet-name>
-		<servlet-class>com.vaadin.terminal.gwt.server.ApplicationServlet</servlet-class>
+		<servlet-class>com.vaadin.server.VaadinServlet</servlet-class>
 		<init-param>
 			<description>Vaadin application class to start</description>
-			<param-name>application</param-name>
-			<param-value>org.minimalj.frontend.vaadin.VaadinFrontend</param-value>
+			<param-name>UI</param-name>
+			<param-value>org.minimalj.frontend.vaadin.VaadinWindow</param-value>
 		</init-param>
 		<init-param>
 			<description>Minimal-J application class to start</description>

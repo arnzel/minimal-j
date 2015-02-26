@@ -40,7 +40,7 @@ public class VaadinEditorLayout extends VaadinBorderLayout implements IComponent
 
 	private static Panel decorateWithScrollPanel(ComponentContainer content) {
 		Panel scrollablePanel = new Panel(content);
-		scrollablePanel.setScrollable(true);
+		// scrollablePanel.setScrollable(true);
 		scrollablePanel.setHeight("100%");
 		return scrollablePanel;
 	}
@@ -76,9 +76,7 @@ public class VaadinEditorLayout extends VaadinBorderLayout implements IComponent
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				VaadinClientToolkit.setWindow(event.getComponent().getWindow());
 				action.action();
-				VaadinClientToolkit.setWindow(null);
 			}
 		});
 		installActionListener(action, button);

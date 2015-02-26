@@ -138,7 +138,7 @@ public class PropertyVaadinContainer<T> implements Container.Sortable {
 		}
 
 		@Override
-		public void setValue(Object newValue) throws ReadOnlyException, ConversionException {
+		public void setValue(Object newValue) throws ReadOnlyException {
 			throw new ReadOnlyException();
 		}
 

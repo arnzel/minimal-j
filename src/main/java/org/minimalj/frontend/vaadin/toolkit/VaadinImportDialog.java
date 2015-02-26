@@ -6,6 +6,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Window;
 
@@ -15,7 +16,7 @@ public class VaadinImportDialog extends Window implements Upload.Receiver {
 	private Upload upload;
 	private CloseablePipedInputStream inputStream;
 	
-	public VaadinImportDialog(Window parentWindow, String title) {
+	public VaadinImportDialog(String title) {
 		super(title);
 		inputStream = new CloseablePipedInputStream();
 		
@@ -27,7 +28,7 @@ public class VaadinImportDialog extends Window implements Upload.Receiver {
 
 		setContent(horizontalLayout);
 		setModal(true);
-		parentWindow.addWindow(this);
+		UI.getCurrent().addWindow(this);
 		
 		addListener(new CloseListener() {
 			private static final long serialVersionUID = 1L;

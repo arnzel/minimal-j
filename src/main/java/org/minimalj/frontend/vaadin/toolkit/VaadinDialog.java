@@ -7,21 +7,20 @@ import org.minimalj.frontend.toolkit.IDialog;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 
 public class VaadinDialog extends Window implements IDialog {
 	private static final long serialVersionUID = 1L;
 	
-	private final Window parentWindow;
 	private org.minimalj.frontend.toolkit.IDialog.CloseListener closeListener;
 	
-	public VaadinDialog(Window parentWindow, ComponentContainer content, String title) {
+	public VaadinDialog(ComponentContainer content, String title) {
 		super(title, content);
-		this.parentWindow = parentWindow;
 		
 		setModal(true);
 		addListener(new VaadinDialogListener());
-		parentWindow.addWindow(this);
+		openDialog();
 		
 		VaadinComponentWithWidth componentWithWidth = findComponentWithWidth(content);
 		if (componentWithWidth != null) {
@@ -36,7 +35,7 @@ public class VaadinDialog extends Window implements IDialog {
 		@Override
 		public void windowClose(CloseEvent e) {
 			if (closeListener == null || closeListener.close()) {
-				parentWindow.removeWindow(VaadinDialog.this);
+				UI.getCurrent().removeWindow(VaadinDialog.this);
 			}
 		}
 	}
@@ -77,7 +76,7 @@ public class VaadinDialog extends Window implements IDialog {
 	}
 
 	@Override
-	protected void close() {
+	public void close() {
 		// super.close(); DONT, would always close without ask
 		fireClose();
 	}

@@ -18,35 +18,23 @@ import org.minimalj.frontend.toolkit.IDialog;
 import org.minimalj.frontend.toolkit.ILink;
 import org.minimalj.frontend.toolkit.ITable;
 import org.minimalj.frontend.toolkit.ITable.TableActionListener;
-import org.minimalj.frontend.toolkit.ProgressListener;
 import org.minimalj.frontend.toolkit.SwitchComponent;
 import org.minimalj.frontend.toolkit.TextField;
 import org.minimalj.frontend.vaadin.VaadinWindow;
 import org.minimalj.util.StringUtils;
 
-import com.vaadin.terminal.ExternalResource;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Link;
-import com.vaadin.ui.Window;
-import com.vaadin.ui.Window.Notification;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.BaseTheme;
 
 public class VaadinClientToolkit extends ClientToolkit {
 
-	private static ThreadLocal<Window> window = new ThreadLocal<Window>();
-	
-	public static void setWindow(Window value) {
-		window.set(value);
-	}
-	
-	public static Window getWindow() {
-		return window.get();
-	}
-	
 	@Override
 	public IComponent createLabel(String string) {
 		return new VaadinLabel(string);
@@ -70,9 +58,7 @@ public class VaadinClientToolkit extends ClientToolkit {
 
 				@Override
 				public void buttonClick(ClickEvent event) {
-					VaadinClientToolkit.setWindow(event.getComponent().getWindow());
 					action.action();
-					VaadinClientToolkit.setWindow(null);
 				}
 			});
 		}
@@ -163,25 +149,29 @@ public class VaadinClientToolkit extends ClientToolkit {
 	
 	@Override
 	public void showMessage(String text) {
-		// TODO Vaadin zeigt Notifikationen statt Informationsdialog
-		Window window = getWindow();
-		window.showNotification("Information", text, Notification.TYPE_HUMANIZED_MESSAGE);
+		com.vaadin.ui.Notification.show(text,
+                com.vaadin.ui.Notification.Type.HUMANIZED_MESSAGE);
 	}
 	
 	@Override
 	public void showError(String text) {
-		// TODO Vaadin zeigt Notifikationen statt Informationsdialog
-		Window window = getWindow();
-		window.showNotification("Fehler", text, Notification.TYPE_ERROR_MESSAGE);
+		com.vaadin.ui.Notification.show(text,
+                com.vaadin.ui.Notification.Type.ERROR_MESSAGE);
 	}
 
 	@Override
 	public void showConfirmDialog(String message, String title, ConfirmDialogType type, DialogListener listener) {
-		Window window = getWindow();
-		while (window.getParent() != null) {
-			window = window.getParent();
-		}
-		new VaadinConfirmDialog(window, message, title, type, listener);
+		VaadinConfirmDialog dialog = VaadinConfirmDialog.getFactory().create(title, message, "ok", "cancel", null);
+		VaadinConfirmDialog.Listener confirmDialogListener = new VaadinConfirmDialog.Listener() {
+			@Override
+			public void onClose(VaadinConfirmDialog dialog) {
+				if (dialog.isConfirmed()) {
+					listener.close(true);
+				}
+				// TODO...
+			}
+		};
+		dialog.show(UI.getCurrent(), confirmDialogListener, true);
 	}
 
 	@Override
@@ -198,19 +188,7 @@ public class VaadinClientToolkit extends ClientToolkit {
 	}
 
 	private IDialog createDialog(String title, Component component) {
-		Window window = getWindow();
-		// need to find application-level window
-		while (window.getParent() != null) {
-			window = window.getParent();
-		}
-		return new VaadinDialog(window, (ComponentContainer) component, title);
-	}
-
-	public static ProgressListener showProgress(Object parent, String text) {
-		Component parentComponent = (Component) parent;
-		Window window = parentComponent.getWindow();
-		VaadinProgressDialog progressDialog = new VaadinProgressDialog(window, text);
-		return progressDialog;
+		return new VaadinDialog((ComponentContainer) component, title);
 	}
 	
 	@Override
@@ -272,10 +250,8 @@ public class VaadinClientToolkit extends ClientToolkit {
 
 					@Override
 					public void buttonClick(ClickEvent event) {
-						VaadinClientToolkit.setWindow(event.getComponent().getWindow());
 						dialog = ((VaadinClientToolkit) ClientToolkit.getToolkit()).createSearchDialog(search, keys, new LookupClickListener());
 						dialog.openDialog();
-						VaadinClientToolkit.setWindow(null);
 					}
 				});
 			}
@@ -292,10 +268,8 @@ public class VaadinClientToolkit extends ClientToolkit {
 
 					@Override
 					public void buttonClick(ClickEvent event) {
-						VaadinClientToolkit.setWindow(event.getComponent().getWindow());
 						VaadinLookup.this.selectedObject = null;
 						changeListener.changed(VaadinLookup.this);
-						VaadinClientToolkit.setWindow(null);
 					}
 				});
 			}
@@ -314,15 +288,12 @@ public class VaadinClientToolkit extends ClientToolkit {
 	
 	@Override
 	public OutputStream store(String buttonText) {
-		Window window = getWindow();
-		return new VaadinExportDialog(window, "Export").getOutputStream();
+		return new VaadinExportDialog("Export").getOutputStream();
 	}
 
 	@Override
 	public InputStream load(String buttonText) {
-		Window window = getWindow();
-
-		VaadinImportDialog importDialog = new VaadinImportDialog(window, "Import");
+		VaadinImportDialog importDialog = new VaadinImportDialog("Import");
 		PipedInputStream inputStream = importDialog.getInputStream();
 		return inputStream;
 	}
@@ -350,26 +321,25 @@ public class VaadinClientToolkit extends ClientToolkit {
 
 	@Override
 	public void show(String pageLink) {
-		VaadinWindow window = (VaadinWindow) getWindow().getApplication().getMainWindow();
+		VaadinWindow window = (VaadinWindow) UI.getCurrent();
 		window.show(pageLink);
 	}
 
 	@Override
 	public void refresh() {
-		VaadinWindow window = (VaadinWindow) getWindow().getApplication().getMainWindow();
-		window.refresh();
+		UI.getCurrent().getPage().reload();
 	}
 
 	
 	@Override
 	public void show(List<String> pageLinks, int index) {
-		VaadinWindow window = (VaadinWindow) getWindow().getApplication().getMainWindow();
+		VaadinWindow window = (VaadinWindow) UI.getCurrent();
 		window.show(pageLinks, index);
 	}
 
 	@Override
 	public ApplicationContext getApplicationContext() {
-		VaadinWindow window = (VaadinWindow) getWindow().getApplication().getMainWindow();
+		VaadinWindow window = (VaadinWindow) UI.getCurrent();
 		return window.getApplicationContext();
 	}
 	

@@ -1,5 +1,7 @@
 package org.minimalj.frontend.page;
 
+import java.io.Serializable;
+
 import org.minimalj.frontend.toolkit.ClientToolkit.IContent;
 
 /**
@@ -14,7 +16,7 @@ import org.minimalj.frontend.toolkit.ClientToolkit.IContent;
  * change the data of the page than to create it again from scratch.
  *
  */
-public interface Page {
+public interface Page extends Serializable {
 	
 	public String getTitle();
 	

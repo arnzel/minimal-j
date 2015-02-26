@@ -1,6 +1,5 @@
 package org.minimalj.frontend.vaadin;
 
-import com.vaadin.terminal.Sizeable;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -121,13 +120,13 @@ public class VaadinBorderLayout extends VerticalLayout {
 			mainLayout.replaceComponent(north, c);
 			north = c;
 			if (north.getHeight() < 0
-					|| north.getHeightUnits() == Sizeable.UNITS_PERCENTAGE) {
+					|| north.getHeightUnits() == Unit.PERCENTAGE) {
 				north.setHeight(minimumNorthHeight);
 			}
 		} else if (constraint == Constraint.WEST) {
 			centerLayout.replaceComponent(west, c);
 			west = c;
-			if (west.getWidth() < 0 || west.getWidthUnits() == Sizeable.UNITS_PERCENTAGE) {
+			if (west.getWidth() < 0 || west.getWidthUnits() == Unit.PERCENTAGE) {
 				west.setWidth(minimumWestWidth);
 			}
 		} else if (constraint == Constraint.CENTER) {
@@ -140,14 +139,14 @@ public class VaadinBorderLayout extends VerticalLayout {
 		} else if (constraint == Constraint.EAST) {
 			centerLayout.replaceComponent(east, c);
 			east = c;
-			if (east.getWidth() < 0 || east.getWidthUnits() == Sizeable.UNITS_PERCENTAGE) {
+			if (east.getWidth() < 0 || east.getWidthUnits() == Unit.PERCENTAGE) {
 				east.setWidth(minimumEastWidth);
 			}
 		} else if (constraint == Constraint.SOUTH) {
 			mainLayout.replaceComponent(south, c);
 			south = c;
 			if (south.getHeight() < 0
-					|| south.getHeightUnits() == Sizeable.UNITS_PERCENTAGE) {
+					|| south.getHeightUnits() == Unit.PERCENTAGE) {
 				south.setHeight(minimumSouthHeight);
 			}
 		} else {

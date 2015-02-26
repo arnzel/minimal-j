@@ -1,14 +1,18 @@
 package org.minimalj.frontend.vaadin;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
-import org.minimalj.application.ApplicationContext;
 import org.minimalj.application.Application;
+import org.minimalj.application.ApplicationContext;
 import org.minimalj.frontend.page.ActionGroup;
+import org.minimalj.frontend.page.EmptyPage;
 import org.minimalj.frontend.page.Page;
 import org.minimalj.frontend.page.PageLink;
 import org.minimalj.frontend.page.type.SearchOf;
+import org.minimalj.frontend.toolkit.ClientToolkit;
 import org.minimalj.frontend.toolkit.ClientToolkit.IContent;
 import org.minimalj.frontend.toolkit.FormContent;
 import org.minimalj.frontend.toolkit.IAction;
@@ -20,6 +24,10 @@ import org.minimalj.util.resources.Resources;
 
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
+import com.vaadin.server.Page.UriFragmentChangedEvent;
+import com.vaadin.server.Page.UriFragmentChangedListener;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -28,34 +36,33 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.UriFragmentUtility;
-import com.vaadin.ui.UriFragmentUtility.FragmentChangedEvent;
-import com.vaadin.ui.UriFragmentUtility.FragmentChangedListener;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 
-public class VaadinWindow extends Window {
+public class VaadinWindow extends UI {
 	private static final long serialVersionUID = 1L;
 
 	private final VerticalLayout windowContent = new VerticalLayout();
 	private final VaadinMenuBar menubar = new VaadinMenuBar(this);
 	private final ComboBox comboBox = new ComboBox();
 	private final TextField textFieldSearch = new TextField();
-	private final UriFragmentUtility ufu;
-	private final ApplicationContext applicatonContext;
+	
+	private final ApplicationContext applicationContext = new VaadinApplicationContext();
+	private static boolean applicationInitialized;
 	
 	private Page visiblePage;
 	private Component content;
-	private Panel scrollablePanel;
+	private VerticalLayout scrollablePanel;
 	private List<String> pageLinks;
 	private int indexInPageLinks;
 	
-	public VaadinWindow(ApplicationContext context) {
-		this.applicatonContext = context;
-		
+	public VaadinWindow() {
+
+	}
+	
+	private void init() {
 		setLocale(Locale.GERMAN);
 
 		setContent(windowContent);
@@ -69,7 +76,7 @@ public class VaadinWindow extends Window {
 		nav.setWidth("100%");
 		nav.setStyleName("topbar");
 		nav.setSpacing(true);
-		nav.setMargin(false, true, false, false);
+		nav.setMargin(new MarginInfo(false, true, false, false));
 
 		nav.addComponent(menubar);
 		nav.setExpandRatio(menubar, 1.0F);
@@ -81,17 +88,82 @@ public class VaadinWindow extends Window {
 			nav.setComponentAlignment(searchComponent, Alignment.MIDDLE_RIGHT);
 		}
 		
-		ufu = new UriFragmentUtility();
-		ufu.addListener(new VaadinWindowFragmentChangedListener());
-		windowContent.addComponent(ufu);
+		com.vaadin.server.Page.getCurrent().addUriFragmentChangedListener(new VaadinWindowFragmentChangedListener());
 		
 		VerticalLayout layout = new VerticalLayout();
 		layout.setMargin(false);
-		scrollablePanel = new Panel(layout);
-		scrollablePanel.setScrollable(true);
+		scrollablePanel = new VerticalLayout(layout);
+		// scrollablePanel.setScrollable(true);
 		scrollablePanel.setSizeFull();
 	}
 
+	@Override
+	protected void init(VaadinRequest request) {
+		initializeApplication();
+		
+		setTheme("openech");
+		
+		init();
+		
+		show(PageLink.link(EmptyPage.class));
+	}
+
+	private synchronized void initializeApplication() {
+		if (!applicationInitialized) {
+//			String applicationName = getProperty("Application");
+			String applicationName = "org.minimalj.example.notes2.NotesApplication";
+			if (StringUtils.isBlank(applicationName)) {
+				throw new IllegalArgumentException("Missing Application parameter");
+			}
+			Application application = Application.createApplication(applicationName);
+			Application.setApplication(application);
+			copyPropertiesFromWebContextToSystem();
+			applicationInitialized = true;
+		}
+	}
+	
+	private void copyPropertiesFromWebContextToSystem() {
+//		Enumeration<?> propertyNames = getPropertyNames();
+//		while (propertyNames.hasMoreElements()) {
+//			String propertyName = (String) propertyNames.nextElement();
+//			System.setProperty(propertyName, getProperty(propertyName));
+//		}
+	}	
+
+	static {
+		Locale.setDefault(Locale.GERMAN); // TODO correct setting of Locale
+		ClientToolkit.setToolkit(new VaadinClientToolkit());
+		Resources.addResourceBundle(ResourceBundle.getBundle("org.minimalj.util.resources.MinimalJ"));
+	}
+
+	public class VaadinApplicationContext extends ApplicationContext implements Serializable {
+		private static final long serialVersionUID = 1L;
+		private Object preferences;
+		
+		@Override
+		public void setUser(String user) {
+			// TODO
+			// VaadinWindow.this.setUser(user);
+		}
+
+		@Override
+		public String getUser() {
+			// TODO
+//			return (String) VaadinWindow.this.getUser();
+			return null;
+		}
+
+		@Override
+		public void loadPreferences(Object preferences) {
+			// nothing done (yet)
+		}
+
+		@Override
+		public void savePreferences(Object preferences) {
+			this.preferences = preferences;
+		}
+	}
+	
 	private Component createSearchField() {
 		final HorizontalLayout horizontalLayout = new HorizontalLayout();
 
@@ -136,9 +208,10 @@ public class VaadinWindow extends Window {
 	}
 	
 	public void show(String pageLink) {
-		boolean sameAsExisting = StringUtils.equals(ufu.getFragment(), pageLink);
+		String actualPageLink = com.vaadin.server.Page.getCurrent().getUriFragment();
+		boolean sameAsExisting = StringUtils.equals(actualPageLink, pageLink);
 		if (!sameAsExisting) {
-			ufu.setFragment(pageLink, true);
+			com.vaadin.server.Page.getCurrent().setUriFragment(pageLink, true);
 		} else {
 			updateContent(pageLink);
 		}
@@ -153,11 +226,9 @@ public class VaadinWindow extends Window {
 	}
 	
 	private void updateContent(String pageLink) {
-		VaadinClientToolkit.setWindow(VaadinWindow.this);
 		visiblePage = PageLink.createPage(pageLink);
 		Component component = (Component) visiblePage.getContent();
 		updateContent(component);
-		VaadinClientToolkit.setWindow(null);
 	}
 	
 	private void updateContent(Component content) {
@@ -262,22 +333,22 @@ public class VaadinWindow extends Window {
 				title = title + " - " + pageTitle;
 			}
 		}
-		setCaption(title);
+		UI.getCurrent().getPage().setTitle(title);
 	}
 	
-	private class VaadinWindowFragmentChangedListener implements FragmentChangedListener {
+	private class VaadinWindowFragmentChangedListener implements UriFragmentChangedListener {
 
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public void fragmentChanged(FragmentChangedEvent source) {
-			String pageLink = source.getUriFragmentUtility().getFragment();
+		public void uriFragmentChanged(UriFragmentChangedEvent source) {
+			String pageLink = source.getUriFragment();
 			updateContent(pageLink);
 		}
 	}
-
+	
 	public ApplicationContext getApplicationContext() {
-		return applicatonContext;
+		return applicationContext;
 	}
 	
 	private IAction[] wrapActions(IAction[] actions) {
@@ -297,7 +368,7 @@ public class VaadinWindow extends Window {
 		}
 
 		public void action() {
-			ApplicationContext.setApplicationContext(VaadinWindow.this.applicatonContext);
+			ApplicationContext.setApplicationContext(VaadinWindow.this.applicationContext);
 			action.action();
 		}
 

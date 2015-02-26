@@ -9,7 +9,6 @@ import org.minimalj.frontend.page.Page;
 import org.minimalj.frontend.page.Separator;
 import org.minimalj.frontend.toolkit.IAction;
 import org.minimalj.frontend.toolkit.IAction.ActionChangeListener;
-import org.minimalj.frontend.vaadin.toolkit.VaadinClientToolkit;
 import org.minimalj.util.resources.Resources;
 
 import com.vaadin.ui.MenuBar;
@@ -110,9 +109,7 @@ public class VaadinMenuBar extends MenuBar {
 
 		@Override
 		public void menuSelected(MenuItem selectedItem) {
-			VaadinClientToolkit.setWindow(vaadinWindow);
 			action.action();
-			VaadinClientToolkit.setWindow(null);
 		}
 	}
 	
