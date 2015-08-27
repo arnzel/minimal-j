@@ -180,6 +180,15 @@ public abstract class Application {
 		return new EmptyPage();
 	}
 
+	public boolean isSearchEnabled() {
+		try {
+			application.getClass().getDeclaredMethod("createSearchPage", String.class);
+			return true;
+		} catch (NoSuchMethodException x) {
+			return false;
+		}
+	}
+	
 	public Page createDefaultPage() {
 		return new EmptyPage();
 	}

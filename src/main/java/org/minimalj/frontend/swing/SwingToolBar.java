@@ -32,7 +32,9 @@ public class SwingToolBar extends JToolBar {
 	protected void fillToolBar() {
 		fillToolBarNavigation();
 		fillToolBarRefresh();
-		fillToolBarSearch();
+		if (Application.getApplication().isSearchEnabled()) {
+			fillToolBarSearch();
+		}
 	}
 	
 	protected void fillToolBarNavigation() {
