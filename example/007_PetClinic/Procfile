@@ -1,0 +1,1 @@
+web:    java -cp target/classes:target/dependency/* org.minimalj.frontend.impl.nanoserver.NanoHttpdApplication org.minimalj.example.petclinic.PetClinicApplication
